@@ -4,6 +4,7 @@ import { DailyNotesPlugin } from './utils/daily-notes';
 import { FolderNotesPlugin } from './utils/folder-notes';
 import { MyPluginSettingTab } from 'settings-tab';
 import { RelatedNotesPlugin } from 'utils/related-notes';
+import { BasePluginModule } from 'utils/base-plugin-module';
 
 export interface PluginModule {
 	loaded: boolean;
@@ -15,10 +16,10 @@ export default class DooMWhitePlugins extends Plugin {
 
 	settings: PluginSettings;
 
-	private dailyNotesPlugin: PluginModule = new DailyNotesPlugin(this);
-	private folderNotesPlugin: PluginModule = new FolderNotesPlugin(this);
-	private relatedNotesPlugin: PluginModule = new RelatedNotesPlugin(this);
-	private plugins: PluginModule[] = [
+	private dailyNotesPlugin: BasePluginModule = new DailyNotesPlugin(this);
+	private folderNotesPlugin: BasePluginModule = new FolderNotesPlugin(this);
+	private relatedNotesPlugin: BasePluginModule = new RelatedNotesPlugin(this);
+	private plugins: BasePluginModule[] = [
 		this.dailyNotesPlugin,
 		this.folderNotesPlugin,
 		this.relatedNotesPlugin

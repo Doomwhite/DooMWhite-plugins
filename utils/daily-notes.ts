@@ -1,33 +1,18 @@
-import { PluginModule } from 'main';
-import { Menu, Notice, Plugin, TFolder, TAbstractFile } from 'obsidian';
+import { Notice, TFolder } from 'obsidian';
+import { BasePluginModule } from './base-plugin-module';
 
-export class DailyNotesPlugin implements PluginModule {
+export class DailyNotesPlugin extends BasePluginModule {
 
-	loaded: boolean = false;
-
-	private readonly plugin: Plugin
-
-	constructor(plugin: Plugin) {
-		this.plugin = plugin;
+	onLoad(): void {
+		this.addContexMenuItemToFileMenu(
+			(file) => file instanceof TFolder, // Condition: only for folders
+			"Create daily note in this folder", // Title
+			"calendar", // Icon
+			(file) => this.createDailyNoteInFolder(file as TFolder) // Action
+		);
 	}
 
-	load() {
-		this.loaded = true;
-		this.plugin.app.workspace.on('file-menu', (menu: Menu, file: TAbstractFile) => {
-			if (!this.loaded) return;
-
-			if (file instanceof TFolder) {
-				menu.addItem((item) => {
-					item.setTitle("Create daily note in this folder")
-						.setIcon("calendar")
-						.onClick(() => this.createDailyNoteInFolder(file));
-				});
-			}
-		});
-	}
-
-	unload() {
-		this.loaded = false;
+	onUnload(): void {
 	}
 
 	async createDailyNoteInFolder(folder: TFolder) {

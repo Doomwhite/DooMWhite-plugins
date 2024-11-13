@@ -1,41 +1,24 @@
-import { PluginModule } from 'main';
-import { Menu, Notice, Plugin, TAbstractFile, TFile, TFolder } from 'obsidian';
+import { Notice, TFile, TFolder } from 'obsidian';
+import { BasePluginModule } from './base-plugin-module';
 
-export class FolderNotesPlugin implements PluginModule {
-	loaded: boolean;
+export class FolderNotesPlugin extends BasePluginModule {
 
-	private readonly plugin: Plugin
-
-	constructor(plugin: Plugin) {
-		this.plugin = plugin;
+	onLoad(): void {
+		this.addContexMenuItemToFileMenu(
+			(file) => file instanceof TFolder, // Condition: only for folders
+			"Create waypoint node to folder and subfolders", // Title
+			"link", // Icon
+			(file) => this.addFoldersNotesAndSubFoldersNotes([file as TFolder]) // Action
+		);
+		this.addContexMenuItemToFileMenu(
+			(file) => file instanceof TFolder, // Condition: only for folders
+			"Create waypoint node to folder", // Title
+			"link", // Icon
+			(file) => this.addFolderNote(file as TFolder) // Action
+		);
 	}
 
-	load() {
-		this.loaded = true;
-		this.plugin.app.workspace.on('file-menu', (menu: Menu, abstractFile: TAbstractFile) => {
-			if (!this.loaded) return;
-
-			if (abstractFile instanceof TFolder) {
-				menu.addItem((item) => {
-					item.setTitle('Create waypoint node to folder and subfolders')
-						.setIcon('link')
-						.onClick(async () => {
-							await this.addFoldersNotesAndSubFoldersNotes([abstractFile]);
-						});
-				});
-				menu.addItem((item) => {
-					item.setTitle('Create waypoint node to folder')
-						.setIcon('link')
-						.onClick(async () => {
-							await this.addFolderNote(abstractFile);
-						});
-				});
-			}
-		});
-	}
-
-	unload(): void {
-		this.loaded = false;
+	onUnload(): void {
 	}
 
 	private async addFoldersNotesAndSubFoldersNotes(folders: TFolder[]) {

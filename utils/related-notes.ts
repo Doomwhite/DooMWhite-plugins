@@ -1,21 +1,13 @@
-import { PluginModule } from 'main';
-import { App, ButtonComponent, DropdownComponent, Menu, Modal, Notice, Plugin, TAbstractFile, TextComponent, TFile, TFolder } from 'obsidian';
+import { App, ButtonComponent, DropdownComponent, Modal, Notice, TAbstractFile, TextComponent, TFile, TFolder } from 'obsidian';
+import { BasePluginModule } from './base-plugin-module';
 
-export class RelatedNotesPlugin implements PluginModule {
-	loaded: boolean;
+export class RelatedNotesPlugin extends BasePluginModule {
 
-	private readonly plugin: Plugin
-
-	constructor(plugin: Plugin) {
-		this.plugin = plugin;
-	}
-
-	load() {
-		this.loaded = true;
-		this.plugin.addCommand({
-			id: "add-file-property-to-folder-and-subfolders",
-			name: "Add File Property to Folder and Subfolders",
-			callback: async () => {
+	onLoad(): void {
+		this.addCommand(
+			"add-file-property-to-folder-and-subfolders",
+			"Add File Property to Folder and Subfolders",
+			async () => {
 				// Prompt user to select a folder
 				const folder = await this.selectFolder();
 				if (folder) {
@@ -30,12 +22,11 @@ export class RelatedNotesPlugin implements PluginModule {
 					).open();
 				}
 			}
-		});
-
-		this.plugin.addCommand({
-			id: "add-file-property-to-folder",
-			name: "Add File Property to Folder",
-			callback: async () => {
+		);
+		this.addCommand(
+			"add-file-property-to-folder",
+			"Add File Property to Folder",
+			async () => {
 				// Prompt user to select a folder
 				const folder = await this.selectFolder();
 				if (folder) {
@@ -51,94 +42,75 @@ export class RelatedNotesPlugin implements PluginModule {
 					).open();
 				}
 			}
-		});
-
-		this.plugin.app.workspace.on('file-menu', (menu: Menu, abstractFile: TAbstractFile) => {
-			// Check if the item is a folder (TFolder)
-			if (!this.loaded) return;
-
-			if (abstractFile instanceof TFolder) {
-				menu.addItem((item) => {
-					item
-						.setTitle('Add File Property to Folder and Subfolders') // Set the title of the menu item
-						.setIcon('link') // You can change the icon to whatever you prefer
-						.onClick(async () => {
-							// When clicked, run the same logic as your command
-							new PropertyModal(
-								this.plugin.app,
-								'related_notes',
-								abstractFile.path,
-								async (propertyName, propertyValue) => {
-									await this.addFilePropertyToFolderChildren(abstractFile, propertyName, propertyValue);
-								},
-							).open();
-						});
-				});
-				menu.addItem((item) => {
-					item
-						.setTitle('Add File Property to Folder') // Set the title of the menu item
-						.setIcon('link') // You can change the icon to whatever you prefer
-						.onClick(async () => {
-							// When clicked, run the same logic as your command
-							new PropertyModal(
-								this.plugin.app,
-								'related_notes',
-								abstractFile.path,
-								async (propertyName, propertyValue) => {
-									const files = this.getChildrenMarkdownFiles(abstractFile);
-									await this.addFilePropertyToFiles(files, abstractFile, propertyName, propertyValue);
-								}
-							).open();
-						});
-				});
-			} else if (abstractFile instanceof TFile && abstractFile.extension === "md") {
-				menu.addItem((item) => {
-					item
-						.setTitle('Add File Property to File') // Set the title of the menu item
-						.setIcon('link') // You can change the icon to whatever you prefer
-						.onClick(async () => {
-							// When clicked, run the same logic as your command
-							new PropertyModal(
-								this.plugin.app,
-								'related_notes',
-								abstractFile.parent ? abstractFile.parent.path : '',
-								async (propertyName, propertyValue) => {
-									// const files = this.getChildrenMarkdownFiles(folder);
-									await this.addFilePropertyToFiles([abstractFile], abstractFile.parent, propertyName, propertyValue);
-								}
-							).open();
-						});
-				});
+		);
+		this.addContexMenuItemToFileMenu(
+			(file) => file instanceof TFolder,
+			'Add File Property to Folder and Subfolders',
+			'link',
+			(file) => {
+				// When clicked, run the same logic as your command
+				new PropertyModal(
+					this.plugin.app,
+					'related_notes',
+					file.path,
+					async (propertyName, propertyValue) => {
+						await this.addFilePropertyToFolderChildren(file as TFolder, propertyName, propertyValue);
+					},
+				).open();
 			}
-		});
-
-		this.plugin.app.workspace.on('files-menu', (menu: Menu, files: TAbstractFile[]) => {
-			// Check if the item is a folder (TFolder)
-			if (!this.loaded) return;
-
-			menu.addItem((item) => {
-				item
-					.setTitle('Add File Property to files/folders') // Set the title of the menu item
-					.setIcon('link') // You can change the icon to whatever you prefer
-					.onClick(async () => {
-						// When clicked, run the same logic as your command
-						new PropertyModal(
-							this.plugin.app,
-							'related_notes',
-							``,
-							async (propertyName, propertyValue) => {
-								await this.addFilePropertyToFolders(files, propertyName, propertyValue);
-							},
-						).open();
-					});
-			});
-		});
+		)
+		this.addContexMenuItemToFileMenu(
+			(file) => file instanceof TFolder,
+			'Add File Property to Folder',
+			'link',
+			(file) => {
+				// When clicked, run the same logic as your command
+				new PropertyModal(
+					this.plugin.app,
+					'related_notes',
+					file.path,
+					async (propertyName, propertyValue) => {
+						await this.addFilePropertyToFolderChildren(file as TFolder, propertyName, propertyValue);
+					},
+				).open();
+			}
+		)
+		this.addContexMenuItemToFileMenu(
+			(file) => file instanceof TFile && file.extension === "md",
+			'Add File Property to File',
+			'link',
+			(file) => {
+				// When clicked, run the same logic as your command
+				new PropertyModal(
+					this.plugin.app,
+					'related_notes',
+					file.parent ? file.parent.path : '',
+					async (propertyName, propertyValue) => {
+						// const files = this.getChildrenMarkdownFiles(folder);
+						await this.addFilePropertyToFiles([file as TFile], file.parent, propertyName, propertyValue);
+					}
+				).open();
+			}
+		)
+		this.addContexMenuItemToFilesMenu(
+			(files) => true,
+			'Add File Property to files/folders',
+			'link',
+			(files) => {
+				// When clicked, run the same logic as your command
+				new PropertyModal(
+					this.plugin.app,
+					'related_notes',
+					``,
+					async (propertyName, propertyValue) => {
+						await this.addFilePropertyToFolders(files, propertyName, propertyValue);
+					},
+				).open();
+			}
+		)
 	}
 
-	unload(): void {
-		this.loaded = false;
-		this.plugin.removeCommand("add-file-property-to-folder")
-		this.plugin.removeCommand("add-file-property-to-folder-and-subfolders")
+	onUnload(): void {
 	}
 
 	async selectFolder(): Promise<TFolder | null> {
