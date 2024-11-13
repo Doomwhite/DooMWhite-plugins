@@ -1,0 +1,11 @@
+{
+	"id": "doomwhite-plugind",
+	"name": "DooMWhite's plugins",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "DooMWhite's plugins collection",
+	"author": "DooMWhite",
+	"authorUrl": "https://github.com/Doomwhite",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": false
+}
