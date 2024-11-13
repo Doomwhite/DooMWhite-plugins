@@ -19,7 +19,7 @@ export class MyPluginSettingTab extends PluginSettingTab {
 			.setName("Enable Daily Note Module")
 			.setDesc("Enable/disable the 'Create daily note in folder' functionality.")
 			.addToggle((toggle) =>
-				toggle.setValue(this.plugin.settings.enableFolderNotesPlugin)
+				toggle.setValue(this.plugin.settings.enableDailyNotesPlugin)
 					.onChange(async (value) => {
 						await this.plugin.toggleEnableDailyNotesPlugin(value);
 					})
