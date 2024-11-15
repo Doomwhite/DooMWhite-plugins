@@ -1,16 +1,14 @@
-import { Plugin, TAbstractFile, Menu, FileSystemAdapter, Notice } from 'obsidian';
-import { PluginSettings } from 'settings';
+import { FileSystemAdapter, Menu, Notice, Plugin, TAbstractFile } from 'obsidian';
 
-export abstract class BasePluginModule {
-	protected settings: PluginSettings;
+export abstract class BasePluginModule<T> {
+	protected settings!: T;
 	protected loaded: boolean = false;
 	protected readonly plugin: Plugin;
 	private registeredContextMenuHandlers: ((...data: unknown[]) => unknown)[] = [];
 	private registeredCommands: string[] = [];
 
-	constructor(plugin: Plugin, settings: PluginSettings) {
+	constructor(plugin: Plugin) {
 		this.plugin = plugin;
-		this.settings = settings;
 	}
 
 	abstract onLoad(): void;
@@ -26,12 +24,14 @@ export abstract class BasePluginModule {
 
 	log(message: string, showToast: boolean = false) {
 		console.log(message)
-		if(showToast) {
+		if (showToast) {
 			new Notice(message);
 		}
 	}
 
-	load() {
+	load(settings: T) {
+		this.settings = settings;
+
 		if (!this.loaded) {
 			this.loaded = true;
 			this.onLoad();

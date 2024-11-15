@@ -2,8 +2,9 @@ import { BasePluginModule } from './base-plugin-module';
 import { ChildProcess, exec } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import { PluginSettings } from 'settings';
 
-export class LocalImageServerPlugin extends BasePluginModule {
+export class LocalImageServerPlugin extends BasePluginModule<PluginSettings> {
     private serverProcess: ChildProcess | null = null;
 
     // Function to check if 'http-server' is installed

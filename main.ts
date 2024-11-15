@@ -16,11 +16,11 @@ export interface PluginModule {
 export default class DooMWhitePlugins extends Plugin {
 	settings: PluginSettings;
 
-	private dailyNotesPlugin: BasePluginModule = new DailyNotesPlugin(this, settings);
-	private folderNotesPlugin: BasePluginModule = new FolderNotesPlugin(this, settings);
-	private relatedNotesPlugin: BasePluginModule = new RelatedNotesPlugin(this, settings);
-	private localImageServerPlugin: BasePluginModule = new LocalImageServerPlugin(this, settings); // Add the new plugin module
-	private plugins: BasePluginModule[] = [
+	private dailyNotesPlugin: BasePluginModule<PluginSettings> = new DailyNotesPlugin(this);
+	private folderNotesPlugin: BasePluginModule<PluginSettings> = new FolderNotesPlugin(this);
+	private relatedNotesPlugin: BasePluginModule<PluginSettings> = new RelatedNotesPlugin(this);
+	private localImageServerPlugin: BasePluginModule<PluginSettings> = new LocalImageServerPlugin(this);
+	private plugins: BasePluginModule<unknown>[] = [
 		this.dailyNotesPlugin,
 		this.folderNotesPlugin,
 		this.relatedNotesPlugin,
@@ -33,19 +33,19 @@ export default class DooMWhitePlugins extends Plugin {
 		this.settings = await loadSettings(this, DEFAULT_SETTINGS);
 
 		if (this.settings.enableDailyNotesPlugin) {
-			this.dailyNotesPlugin.load();
+			this.dailyNotesPlugin.load(this.settings);
 		}
 
 		if (this.settings.enableFolderNotesPlugin) {
-			this.folderNotesPlugin.load();
+			this.folderNotesPlugin.load(this.settings);
 		}
 
 		if (this.settings.enableRelatedNotesPlugin) {
-			this.relatedNotesPlugin.load();
+			this.relatedNotesPlugin.load(this.settings);
 		}
 
 		if (this.settings.enableLocalImageServerPlugin) {
-			this.localImageServerPlugin.load(); // Load the new plugin based on settings
+			this.localImageServerPlugin.load(this.settings);
 		}
 
 		this.addSettings();
@@ -72,7 +72,7 @@ export default class DooMWhitePlugins extends Plugin {
 		this.settings.enableDailyNotesPlugin = enable;
 		await this.saveSettings();
 		if (enable) {
-			this.dailyNotesPlugin.load();
+			this.dailyNotesPlugin.load(this.settings);
 		} else {
 			this.dailyNotesPlugin.unload();
 		}
@@ -82,7 +82,7 @@ export default class DooMWhitePlugins extends Plugin {
 		this.settings.enableFolderNotesPlugin = enable;
 		await this.saveSettings();
 		if (enable) {
-			this.folderNotesPlugin.load();
+			this.folderNotesPlugin.load(this.settings);
 		} else {
 			this.folderNotesPlugin.unload();
 		}
@@ -92,7 +92,7 @@ export default class DooMWhitePlugins extends Plugin {
 		this.settings.enableRelatedNotesPlugin = enable;
 		await this.saveSettings();
 		if (enable) {
-			this.relatedNotesPlugin.load();
+			this.relatedNotesPlugin.load(this.settings);
 		} else {
 			this.relatedNotesPlugin.unload();
 		}
@@ -102,7 +102,7 @@ export default class DooMWhitePlugins extends Plugin {
 		this.settings.enableLocalImageServerPlugin = enable;
 		await this.saveSettings();
 		if (enable) {
-			this.localImageServerPlugin.load(); // Load the server plugin
+			this.localImageServerPlugin.load(this.settings); // Load the server plugin
 		} else {
 			this.localImageServerPlugin.unload(); // Unload the server plugin
 		}

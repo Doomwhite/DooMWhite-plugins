@@ -1,7 +1,8 @@
 import { App, ButtonComponent, DropdownComponent, Modal, Notice, TAbstractFile, TextComponent, TFile, TFolder } from 'obsidian';
 import { BasePluginModule } from './base-plugin-module';
+import { PluginSettings } from 'settings';
 
-export class RelatedNotesPlugin extends BasePluginModule {
+export class RelatedNotesPlugin extends BasePluginModule<PluginSettings> {
 
 	onLoad(): void {
 		this.addCommand(
