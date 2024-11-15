@@ -1,17 +1,35 @@
-import { Plugin, TAbstractFile, Menu } from 'obsidian';
+import { Plugin, TAbstractFile, Menu, FileSystemAdapter, Notice } from 'obsidian';
+import { PluginSettings } from 'settings';
 
 export abstract class BasePluginModule {
+	protected settings: PluginSettings;
 	protected loaded: boolean = false;
 	protected readonly plugin: Plugin;
 	private registeredContextMenuHandlers: ((...data: unknown[]) => unknown)[] = [];
 	private registeredCommands: string[] = [];
 
-	constructor(plugin: Plugin) {
+	constructor(plugin: Plugin, settings: PluginSettings) {
 		this.plugin = plugin;
+		this.settings = settings;
 	}
 
 	abstract onLoad(): void;
 	abstract onUnload(): void;
+
+	getVaultPath() {
+		let adapter = this.plugin.app.vault.adapter;
+		if (adapter instanceof FileSystemAdapter) {
+			return adapter.getBasePath();
+		}
+		return '';
+	}
+
+	log(message: string, showToast: boolean = false) {
+		console.log(message)
+		if(showToast) {
+			new Notice(message);
+		}
+	}
 
 	load() {
 		if (!this.loaded) {

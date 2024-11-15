@@ -1,10 +1,11 @@
 import { Plugin } from 'obsidian';
-import { DEFAULT_SETTINGS, loadSettings, MyPluginSettings as PluginSettings, saveSettings } from './settings';
+import { DEFAULT_SETTINGS, loadSettings, PluginSettings, saveSettings } from './settings';
 import { DailyNotesPlugin } from './utils/daily-notes';
 import { FolderNotesPlugin } from './utils/folder-notes';
 import { MyPluginSettingTab } from 'settings-tab';
 import { RelatedNotesPlugin } from 'utils/related-notes';
 import { BasePluginModule } from 'utils/base-plugin-module';
+import { LocalImageServerPlugin } from './utils/local-image-server'; // Import the new plugin module
 
 export interface PluginModule {
 	loaded: boolean;
@@ -13,17 +14,18 @@ export interface PluginModule {
 }
 
 export default class DooMWhitePlugins extends Plugin {
-
 	settings: PluginSettings;
 
-	private dailyNotesPlugin: BasePluginModule = new DailyNotesPlugin(this);
-	private folderNotesPlugin: BasePluginModule = new FolderNotesPlugin(this);
-	private relatedNotesPlugin: BasePluginModule = new RelatedNotesPlugin(this);
+	private dailyNotesPlugin: BasePluginModule = new DailyNotesPlugin(this, settings);
+	private folderNotesPlugin: BasePluginModule = new FolderNotesPlugin(this, settings);
+	private relatedNotesPlugin: BasePluginModule = new RelatedNotesPlugin(this, settings);
+	private localImageServerPlugin: BasePluginModule = new LocalImageServerPlugin(this, settings); // Add the new plugin module
 	private plugins: BasePluginModule[] = [
 		this.dailyNotesPlugin,
 		this.folderNotesPlugin,
-		this.relatedNotesPlugin
-	]
+		this.relatedNotesPlugin,
+		this.localImageServerPlugin // Add the local image server plugin to the list
+	];
 	private hasSettingsTab: boolean;
 
 	async onload() {
@@ -42,6 +44,10 @@ export default class DooMWhitePlugins extends Plugin {
 			this.relatedNotesPlugin.load();
 		}
 
+		if (this.settings.enableLocalImageServerPlugin) {
+			this.localImageServerPlugin.load(); // Load the new plugin based on settings
+		}
+
 		this.addSettings();
 	}
 
@@ -51,7 +57,7 @@ export default class DooMWhitePlugins extends Plugin {
 		this.addSettingTab(new MyPluginSettingTab(this.app, this));
 	}
 
-	onunload() {
+	unload() {
 		// Perform any necessary cleanup
 		for (const plugin of this.plugins) {
 			plugin.unload();
@@ -89,6 +95,16 @@ export default class DooMWhitePlugins extends Plugin {
 			this.relatedNotesPlugin.load();
 		} else {
 			this.relatedNotesPlugin.unload();
+		}
+	}
+
+	async toggleEnableLocalImageServerPlugin(enable: boolean) {
+		this.settings.enableLocalImageServerPlugin = enable;
+		await this.saveSettings();
+		if (enable) {
+			this.localImageServerPlugin.load(); // Load the server plugin
+		} else {
+			this.localImageServerPlugin.unload(); // Unload the server plugin
 		}
 	}
 }

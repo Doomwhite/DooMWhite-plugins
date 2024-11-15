@@ -1,20 +1,22 @@
 import DooMWhitePlugins from 'main';
 
-export interface MyPluginSettings {
+export interface PluginSettings {
 	mySetting: string;
 	enableDailyNotesPlugin: boolean;
 	enableFolderNotesPlugin: boolean;
 	enableRelatedNotesPlugin: boolean;
+	enableLocalImageServerPlugin: boolean;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
+export const DEFAULT_SETTINGS: PluginSettings = {
 	mySetting: 'default',
 	enableDailyNotesPlugin: true,
 	enableFolderNotesPlugin: true,
-	enableRelatedNotesPlugin: true
+	enableRelatedNotesPlugin: true,
+	enableLocalImageServerPlugin: true
 }
 
-export async function loadSettings(plugin: DooMWhitePlugins, defaultSettings: MyPluginSettings): Promise<MyPluginSettings> {
+export async function loadSettings(plugin: DooMWhitePlugins, defaultSettings: PluginSettings): Promise<PluginSettings> {
 	return Object.assign({}, defaultSettings, await plugin.loadData());
 }
 

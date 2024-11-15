@@ -45,5 +45,15 @@ export class MyPluginSettingTab extends PluginSettingTab {
 						await this.plugin.toggleEnableRelatedNotesPlugin(value);
 					})
 			);
+
+		new Setting(containerEl)
+			.setName("Enable Local Image Server")
+			.setDesc("Enable the local image server to serve images from the attachments folder.")
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableLocalImageServerPlugin)
+				.onChange(async (value) => {
+					await this.plugin.toggleEnableLocalImageServerPlugin(value);
+				})
+			);
 	}
 }
