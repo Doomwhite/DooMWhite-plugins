@@ -1,6 +1,6 @@
 import { FileSystemAdapter, Menu, Notice, Plugin, TAbstractFile } from 'obsidian';
 
-export abstract class BasePluginModule<T> {
+export default abstract class BasePluginModule<T> {
 	protected settings!: T;
 	protected loaded: boolean = false;
 	protected readonly plugin: Plugin;
@@ -30,6 +30,7 @@ export abstract class BasePluginModule<T> {
 	}
 
 	load(settings: T) {
+		console.log('settings', settings);
 		this.settings = settings;
 
 		if (!this.loaded) {

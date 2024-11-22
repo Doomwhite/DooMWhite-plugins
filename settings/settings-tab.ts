@@ -1,7 +1,8 @@
 import DooMWhitePlugins from 'main';
 import { App, PluginSettingTab, Setting } from 'obsidian';
+import LocalImageServerPluginSettings from '../plugins/local-image-server/settings.ts';
 
-export class MyPluginSettingTab extends PluginSettingTab {
+export default class MyPluginSettingTab extends PluginSettingTab {
 	plugin: DooMWhitePlugins;
 
 	constructor(app: App, plugin: DooMWhitePlugins) {
@@ -54,6 +55,27 @@ export class MyPluginSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					await this.plugin.toggleEnableLocalImageServerPlugin(value);
 				})
+			);
+
+		new Setting(containerEl)
+			.setName("Local Image Server - Path")
+			.setDesc(`The 'Local Image Server' path. Default: ${LocalImageServerPluginSettings.DEFAULT_PATH}`)
+			.addText(toggle => toggle
+				.setValue(this.plugin.settings.localImageServerPlugin.path)
+			);
+
+		new Setting(containerEl)
+			.setName("Local Image Server - Port")
+			.setDesc(`The 'Local Image Server' port. Default: ${LocalImageServerPluginSettings.DEFAULT_PORT}`)
+			.addText(toggle => toggle
+				.setValue(this.plugin.settings.localImageServerPlugin.port)
+			);
+
+		new Setting(containerEl)
+			.setName("Local Image Server - CORS")
+			.setDesc(`The 'Local Image Server' CORS. Default: ${LocalImageServerPluginSettings.DEFAULT_CORS}`)
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.localImageServerPlugin.cors)
 			);
 	}
 }

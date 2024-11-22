@@ -1,8 +1,8 @@
 import { Notice, TFolder } from 'obsidian';
-import { BasePluginModule } from './base-plugin-module';
-import { PluginSettings } from 'settings';
+import BasePluginModule from 'utils/base-plugin-module';
+import DailyNotesPluginSettings from './settings.ts';
 
-export class DailyNotesPlugin extends BasePluginModule<PluginSettings> {
+export default class DailyNotesPlugin extends BasePluginModule<DailyNotesPluginSettings> {
 
 	onLoad(): void {
 		this.addContexMenuItemToFileMenu(

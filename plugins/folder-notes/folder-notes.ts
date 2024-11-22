@@ -1,8 +1,8 @@
 import { Notice, TFile, TFolder } from 'obsidian';
-import { BasePluginModule } from './base-plugin-module';
-import { PluginSettings } from 'settings';
+import BasePluginModule from '../../utils/base-plugin-module';
+import FolderNotesPluginSettings from './settings.ts';
 
-export class FolderNotesPlugin extends BasePluginModule<PluginSettings> {
+export default class FolderNotesPlugin extends BasePluginModule<FolderNotesPluginSettings> {
 
 	onLoad(): void {
 		this.addContexMenuItemToFileMenu(
