@@ -1,5 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
+import fs from "fs-extra"; // To handle cleaning the output directory
 import builtins from "builtin-modules";
 
 const banner =
@@ -10,6 +11,7 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = (process.argv[2] === "production");
+const outputDir = "dist"; // Output directory
 
 const context = await esbuild.context({
 	banner: {
@@ -50,13 +52,21 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outfile: "main.js",
+	outfile: `${outputDir}/main.js`,
 	minify: prod,
 });
 
+const copyStaticFiles = () => {
+	fs.copySync("manifest.json", `${outputDir}/manifest.json`);
+	fs.copySync("styles.css", `${outputDir}/styles.css`);
+	console.log("Copied static files to dist folder.");
+};
+
 if (prod) {
 	await context.rebuild();
+	copyStaticFiles(); // Copy static files for production build
 	process.exit(0);
 } else {
 	await context.watch();
+	copyStaticFiles(); // Copy static files during development
 }
