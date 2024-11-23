@@ -3,6 +3,8 @@ import DailyNotesPluginSettings from '../plugins/daily-notes/settings.ts';
 import FolderNotesPluginSettings from '../plugins/folder-notes/settings.ts';
 import LocalImageServerPluginSettings from '../plugins/local-image-server/settings.ts';
 import RelatedNotesPluginSettings from '../plugins/related-notes/settings';
+import { InvalidOperationException, InvalidTypeException } from 'utils/exceptions.js';
+import { EmbedLinksPluginSettings } from 'plugins/embed-links/settings.js';
 
 export enum LogLevel {
 	Trace,
@@ -19,10 +21,12 @@ export interface PluginSettings {
 	enableFolderNotesPlugin: boolean;
 	enableRelatedNotesPlugin: boolean;
 	enableLocalImageServerPlugin: boolean;
+	enableEmbedLinksPlugin: boolean;
 	dailyNotesPluginSettings: DailyNotesPluginSettings;
 	folderNotesPluginSettings: FolderNotesPluginSettings;
 	relatedNotesPluginSettings: RelatedNotesPluginSettings;
 	localImageServerPluginSettings: LocalImageServerPluginSettings;
+	embedLinksPluginSettings: EmbedLinksPluginSettings;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -32,13 +36,15 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	enableFolderNotesPlugin: true,
 	enableRelatedNotesPlugin: true,
 	enableLocalImageServerPlugin: true,
+	enableEmbedLinksPlugin: true,
 	dailyNotesPluginSettings: new DailyNotesPluginSettings(),
 	folderNotesPluginSettings: new FolderNotesPluginSettings(),
 	relatedNotesPluginSettings: new RelatedNotesPluginSettings(),
-	localImageServerPluginSettings: new LocalImageServerPluginSettings()
+	localImageServerPluginSettings: new LocalImageServerPluginSettings(),
+	embedLinksPluginSettings: new EmbedLinksPluginSettings()
 }
 
-function restorePrototypes<T>(target: T | null | undefined, defaultInstance: T): T {
+function restorePrototypes<T extends object>(target: T | null | undefined, defaultInstance: T): T {
 	// If the target is null or undefined, fallback to a cloned defaultInstance
 	if (target == null) {
 		return defaultInstance; // You can use a deep clone utility if needed.
@@ -65,6 +71,8 @@ export async function loadSettings(
 	defaultSettings: PluginSettings
 ): Promise<PluginSettings> {
 	const rawData = await plugin.loadData();
+	if (!(typeof rawData === "object" || typeof rawData === "undefined")) throw new InvalidTypeException(nameof(rawData));
+
 	return restorePrototypes(rawData, defaultSettings);
 }
 

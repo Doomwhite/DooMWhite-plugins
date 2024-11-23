@@ -1,5 +1,5 @@
 import DooMWhitePlugins from 'main';
-import { FileSystemAdapter, Menu, Notice, Plugin, TAbstractFile } from 'obsidian';
+import { Editor, EditorSuggest, EventRef, FileSystemAdapter, MarkdownFileInfo, MarkdownPostProcessorContext, MarkdownView, Menu, Notice, Plugin, TAbstractFile } from 'obsidian';
 import { LogLevel } from 'settings/settings';
 
 export interface ErrorWrappingSettings {
@@ -15,14 +15,17 @@ const logStyles = {
 }
 
 export default abstract class BasePluginModule<T extends ErrorWrappingSettings> {
-	protected readonly name!: string;
-	protected settings!: T;
-	protected loaded: boolean = false;
-	protected readonly plugin: Plugin;
+	readonly name!: string;
+	readonly plugin: Plugin;
+
+	settings!: T;
+	loaded: boolean = false;
 
 	private readonly originalMethods: Map<string, Function> = new Map();
 	private registeredContextMenuHandlers: ((...data: unknown[]) => unknown)[] = [];
 	private registeredCommands: string[] = [];
+	private registers: string[] = []
+
 
 	protected constructor(name: string, plugin: Plugin) {
 		this.name = name;
@@ -72,7 +75,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 		}
 	}
 
-	protected toggleErrorWrapping(enable: boolean) {
+	toggleErrorWrapping(enable: boolean) {
 		try {
 			this.trace(`Error wrapping ${enable ? 'enabled' : 'disabled'}.`, true, 500);
 
@@ -109,7 +112,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 		}
 	}
 
-	protected getVaultPath() {
+	getVaultPath() {
 		try {
 			let adapter = this.plugin.app.vault.adapter;
 			if (adapter instanceof FileSystemAdapter) {
@@ -127,7 +130,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 		return `Error in ${fnName}: ${errorMessage}`;
 	}
 
-	protected toast(message: string, duration?: number) {
+	toast(message: string, duration?: number) {
 		console.log('DooMWhitePlugins.logLevel', DooMWhitePlugins.logLevel);
 		// Create a DocumentFragment to allow custom HTML
 		const fragment = document.createDocumentFragment();
@@ -151,7 +154,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	// Trace log function
-	protected trace(message: string, showToast: boolean = false, duration?: number) {
+	trace(message: string, showToast: boolean = false, duration?: number) {
 		if (DooMWhitePlugins.logLevel > LogLevel.Trace) return;
 
 		const pluginName = `[${this.name}]`;
@@ -164,7 +167,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	// Regular log function
-	protected log(message: string, showToast: boolean = false, duration?: number) {
+	log(message: string, showToast: boolean = false, duration?: number) {
 		if (DooMWhitePlugins.logLevel > LogLevel.Log) return;
 
 		const pluginName = `[${this.name}]`;
@@ -177,7 +180,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	// Debug log function
-	protected debug(message: string, showToast: boolean = false, duration?: number) {
+	debug(message: string, showToast: boolean = false, duration?: number) {
 		if (DooMWhitePlugins.logLevel > LogLevel.Debug) return;
 
 		const pluginName = `[${this.name}]`;
@@ -190,7 +193,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	// Error log function
-	protected warn(methodName: string, error: unknown) {
+	warn(methodName: string, error: unknown) {
 		if (DooMWhitePlugins.logLevel > LogLevel.Warn) return;
 
 		const errorStyle = logStyles[LogLevel.Warn];
@@ -202,7 +205,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	// Error log function
-	protected error(methodName: string, error: unknown) {
+	error(methodName: string, error: unknown) {
 		if (DooMWhitePlugins.logLevel > LogLevel.Error) return;
 
 		const errorStyle = logStyles[LogLevel.Error];
@@ -212,7 +215,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 		this.toast(errorMessage, 0);
 	}
 
-	protected wrapWithErrorHandling<TArgs extends unknown[], TResult>(
+	wrapWithErrorHandling<TArgs extends unknown[], TResult>(
 		fn: (...args: TArgs) => TResult | Promise<TResult>,
 		fnName: string
 	): (...args: TArgs) => TResult | Promise<TResult> {
@@ -244,7 +247,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	// Adds a context menu item with specific conditions and actions
-	protected addContexMenuItemToFileMenu(
+	addContexMenuItemToFileMenu(
 		condition: (file: TAbstractFile) => boolean,
 		title: string,
 		icon: string,
@@ -270,7 +273,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 		}
 	}
 
-	protected addContexMenuItemToFilesMenu(
+	addContexMenuItemToFilesMenu(
 		condition: (files: TAbstractFile[]) => boolean,
 		title: string,
 		icon: string,
@@ -297,10 +300,10 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	// Adds a command to the plugin and stores the command ID for cleanup
-	protected addCommand(
+	addCommand(
 		id: string,
 		name: string,
-		callback: () => void
+		callback: () => void | Promise<void>
 	) {
 		try {
 			// Register the command
@@ -316,4 +319,61 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 			this.error('addCommand', error);
 		}
 	}
+
+	addEditorCommand(
+		id: string,
+		name: string,
+		callback: (editor: Editor, ctx: MarkdownView | MarkdownFileInfo) => any
+	) {
+		try {
+			// Register the command
+			const command = this.plugin.addCommand({
+				id,
+				name,
+				editorCallback: this.wrapWithErrorHandling(callback, id), // Wrap the callback
+			});
+
+			// Store the command ID for cleanup
+			this.registeredCommands.push(command.id);
+		} catch (error) {
+			this.error('addCommand', error);
+		}
+		this.plugin.registerMarkdownCodeBlockProcessor
+	}
+
+	registerEditorSuggest(id: string, editorSuggest: EditorSuggest<any>) {
+		this.log(`editorSuggest ${editorSuggest}`)
+
+		const register = `registerEditorSuggest-${id}`
+		if (this.registers.contains(register)) return;
+		this.registers.push(register);
+
+		this.plugin.registerEditorSuggest(editorSuggest)
+	}
+
+	registerEvent(id: 'editor-paste', eventRef: EventRef) {
+		this.log(`eventRef ${eventRef}`)
+
+		const register = `registerEvent-${id}`
+		if (this.registers.contains(register)) return;
+		this.registers.push(register);
+
+		this.plugin.registerEvent(eventRef)
+	}
+
+	registerMarkdownCodeBlockProcessor(
+		language: string,
+		handler: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => Promise<any> | void,
+		sortOrder?: number
+	) {
+		this.log(`language ${language} handler ${handler} sortOrder ${sortOrder}`)
+
+		const register = `registerMarkdownCodeBlockProcessor-${language}`
+		if (this.registers.contains(register)) return;
+		this.registers.push(register);
+
+		this.plugin.registerMarkdownCodeBlockProcessor(language, handler, sortOrder);
+	}
+
+
 }

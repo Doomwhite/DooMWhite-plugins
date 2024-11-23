@@ -12,13 +12,33 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/fs-extra": "^11.0.0",
+		"@types/he": "1.2.0",
+		"@types/lodash": "^4.14.181",
+		"@types/mustache": "^4.1.2",
 		"@types/node": "^16.11.6",
-		"@typescript-eslint/eslint-plugin": "5.29.0",
-		"@typescript-eslint/parser": "5.29.0",
+		"@types/ts-nameof": "^4.2.5",
+		"@typescript-eslint/eslint-plugin": "^5.2.0",
+		"@typescript-eslint/parser": "^5.2.0",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.17.3",
+		"mustache": "^4.2.0",
+		"node-exceptions": "4.0.1",
 		"obsidian": "latest",
+		"ts-nameof": "^5.0.0",
 		"tslib": "2.4.0",
-		"typescript": "4.7.4"
+		"typescript": "^5.6.3"
+	},
+	"dependencies": {
+		"axios": "^1.7.7",
+		"builtin-modules": "3.3.0",
+		"esbuild": "0.17.3",
+		"fs-extra": "^11.2.0",
+		"he": "1.2.0",
+		"node-exceptions": "4.0.1",
+		"obsidian": "latest",
+		"ts-nameof": "^5.0.0",
+		"tslib": "2.4.0",
+		"typescript": "^5.6.3"
 	}
 }

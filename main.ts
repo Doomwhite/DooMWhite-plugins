@@ -10,6 +10,8 @@ import RelatedNotesPluginSettings from 'plugins/related-notes/settings';
 import MyPluginSettingTab from 'settings/settings-tab';
 import BasePluginModule from 'utils/base-plugin-module';
 import { DEFAULT_SETTINGS, loadSettings, LogLevel, PluginSettings, saveSettings } from './settings/settings';
+import { EmbedLinksPluginSettings } from 'plugins/embed-links/settings';
+import EmbedLinksPlugin from 'plugins/embed-links/embed-links';
 
 export interface PluginModule {
 	loaded: boolean;
@@ -26,11 +28,13 @@ export default class DooMWhitePlugins extends Plugin {
 	private folderNotesPlugin: BasePluginModule<FolderNotesPluginSettings> = new FolderNotesPlugin(this);
 	private relatedNotesPlugin: BasePluginModule<RelatedNotesPluginSettings> = new RelatedNotesPlugin(this);
 	private localImageServerPlugin: BasePluginModule<LocalImageServerPluginSettings> = new LocalImageServerPlugin(this);
+	private embedLinksPlugin: BasePluginModule<EmbedLinksPluginSettings> = new EmbedLinksPlugin(this);
 	private plugins: BasePluginModule<any>[] = [
 		this.dailyNotesPlugin,
 		this.folderNotesPlugin,
 		this.relatedNotesPlugin,
-		this.localImageServerPlugin
+		this.localImageServerPlugin,
+		this.embedLinksPlugin
 	];
 	private hasSettingsTab: boolean;
 
@@ -53,6 +57,10 @@ export default class DooMWhitePlugins extends Plugin {
 
 		if (this.settings.enableLocalImageServerPlugin) {
 			this.localImageServerPlugin.load(this.settings.localImageServerPluginSettings);
+		}
+
+		if (this.settings.enableEmbedLinksPlugin) {
+			this.embedLinksPlugin.load(this.settings.embedLinksPluginSettings);
 		}
 
 		this.addSettings();
@@ -141,5 +149,15 @@ export default class DooMWhitePlugins extends Plugin {
 		await this.saveSettings();
 		this.localImageServerPlugin.unload();
 		this.localImageServerPlugin.load(this.settings.localImageServerPluginSettings);
+	}
+
+	async toggleEnableEmbedLinksPlugin(enable: boolean) {
+		this.settings.enableEmbedLinksPlugin = enable;
+		await this.saveSettings();
+		if (enable) {
+			this.embedLinksPlugin.load(this.settings.embedLinksPluginSettings);
+		} else {
+			this.embedLinksPlugin.unload();
+		}
 	}
 }
