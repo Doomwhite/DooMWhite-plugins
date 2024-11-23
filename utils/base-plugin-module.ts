@@ -1,7 +1,17 @@
+import DooMWhitePlugins from 'main';
 import { FileSystemAdapter, Menu, Notice, Plugin, TAbstractFile } from 'obsidian';
+import { LogLevel } from 'settings/settings';
 
 export interface ErrorWrappingSettings {
 	enableErrorWrapping: boolean;
+}
+
+const logStyles = {
+	[LogLevel.Trace]: 'color: #00BFFF; font-weight: normal',
+	[LogLevel.Log]: 'color: #32CD32; font-weight: normal',
+	[LogLevel.Debug]: 'color: #FFD700; font-weight: normal',
+	[LogLevel.Warn]: 'color: #FFA500; font-weight: bold',
+	[LogLevel.Error]: 'color: #FF6347; font-weight: bold'
 }
 
 export default abstract class BasePluginModule<T extends ErrorWrappingSettings> {
@@ -27,7 +37,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 			this.settings = settings;
 
 			if (!this.loaded) {
-				this.log(`[${this.name}] Initializing plugin module...`, true, 500);
+				this.trace(`Initializing plugin module...`, true, 500);
 
 				this.toggleErrorWrapping(this.settings.enableErrorWrapping);
 
@@ -35,7 +45,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 				this.onLoad();
 			}
 		} catch (error) {
-			this.logError('load', error);
+			this.error('load', error);
 		}
 	}
 
@@ -58,13 +68,13 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 				this.registeredCommands = [];
 			}
 		} catch (error) {
-			this.logError('unload', error);
+			this.error('unload', error);
 		}
 	}
 
 	protected toggleErrorWrapping(enable: boolean) {
 		try {
-			this.log(`Error wrapping ${enable ? 'enabled' : 'disabled'}.`, true, 500);
+			this.trace(`Error wrapping ${enable ? 'enabled' : 'disabled'}.`, true, 500);
 
 			const methodNames = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
 
@@ -95,7 +105,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 				}
 			}
 		} catch (error) {
-			this.logError('toggleErrorWrapping', error);
+			this.error('toggleErrorWrapping', error);
 		}
 	}
 
@@ -107,7 +117,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 			}
 			return '';
 		} catch (error) {
-			this.logError('getVaultPath', error);
+			this.error('getVaultPath', error);
 			return '';
 		}
 	}
@@ -118,20 +128,88 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	protected toast(message: string, duration?: number) {
-		new Notice(message, duration);
+		console.log('DooMWhitePlugins.logLevel', DooMWhitePlugins.logLevel);
+		// Create a DocumentFragment to allow custom HTML
+		const fragment = document.createDocumentFragment();
+
+		// Create a styled span element for the plugin name
+		const pluginNameElement = document.createElement('span');
+		pluginNameElement.style.color = '#FF6347'; // Change to desired color
+		pluginNameElement.style.fontWeight = 'bold'; // Apply bold font style
+		pluginNameElement.textContent = `[${this.name}]`;
+
+		// Create another span for the rest of the message
+		const messageElement = document.createElement('span');
+		messageElement.textContent = ` \n${message}`;
+
+		// Append the plugin name and message elements to the fragment
+		fragment.appendChild(pluginNameElement);
+		fragment.appendChild(messageElement);
+
+		// Create the Notice with the DocumentFragment
+		new Notice(fragment, duration);
 	}
 
-	protected log(message: string, showToast: boolean = false, duration?: number) {
-		console.log(`${this.name} \n${message}`);
+	// Trace log function
+	protected trace(message: string, showToast: boolean = false, duration?: number) {
+		if (DooMWhitePlugins.logLevel > LogLevel.Trace) return;
+
+		const pluginName = `[${this.name}]`;
+		const traceStyle = logStyles[LogLevel.Trace]
+		console.trace(`%c${pluginName}`, traceStyle, message);
+
 		if (showToast) {
-			this.toast(`${this.name}: \n${message}`, duration)
+			this.toast(message, duration);
 		}
 	}
 
-	protected logError(methodName: string, error: unknown) {
+	// Regular log function
+	protected log(message: string, showToast: boolean = false, duration?: number) {
+		if (DooMWhitePlugins.logLevel > LogLevel.Log) return;
+
+		const pluginName = `[${this.name}]`;
+		const logStyle = logStyles[LogLevel.Log];
+		console.log(`%c${pluginName}`, logStyle, message);
+
+		if (showToast) {
+			this.toast(message, duration);
+		}
+	}
+
+	// Debug log function
+	protected debug(message: string, showToast: boolean = false, duration?: number) {
+		if (DooMWhitePlugins.logLevel > LogLevel.Debug) return;
+
+		const pluginName = `[${this.name}]`;
+		const debugStyle = logStyles[LogLevel.Debug];
+		console.debug(`%c${pluginName}`, debugStyle, message);
+
+		if (showToast) {
+			this.toast(message, duration);
+		}
+	}
+
+	// Error log function
+	protected warn(methodName: string, error: unknown) {
+		if (DooMWhitePlugins.logLevel > LogLevel.Warn) return;
+
+		const errorStyle = logStyles[LogLevel.Warn];
+
 		const errorMessage = this.getErrorMessage(error, methodName);
-		this.log(errorMessage, true, 0);
-		console.error(error);
+		const pluginName = `[${this.name}]`;
+		console.warn(`%c${pluginName}`, errorStyle, errorMessage);  // Error uses console.error
+		this.toast(errorMessage, 5000);
+	}
+
+	// Error log function
+	protected error(methodName: string, error: unknown) {
+		if (DooMWhitePlugins.logLevel > LogLevel.Error) return;
+
+		const errorStyle = logStyles[LogLevel.Error];
+		const errorMessage = this.getErrorMessage(error, methodName);
+		const pluginName = `[${this.name}]`;
+		console.error(`%c${pluginName}`, errorStyle, errorMessage);  // Error uses console.error
+		this.toast(errorMessage, 0);
 	}
 
 	protected wrapWithErrorHandling<TArgs extends unknown[], TResult>(
@@ -188,7 +266,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 			this.plugin.app.workspace.on('file-menu', handler);
 			this.registeredContextMenuHandlers.push(handler);
 		} catch (error) {
-			this.logError('addContexMenuItemToFileMenu', error);
+			this.error('addContexMenuItemToFileMenu', error);
 		}
 	}
 
@@ -214,7 +292,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 			this.plugin.app.workspace.on('files-menu', handler);
 			this.registeredContextMenuHandlers.push(handler);
 		} catch (error) {
-			this.logError('addContexMenuItemToFilesMenu', error);
+			this.error('addContexMenuItemToFilesMenu', error);
 		}
 	}
 
@@ -235,7 +313,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 			// Store the command ID for cleanup
 			this.registeredCommands.push(command.id);
 		} catch (error) {
-			this.logError('addCommand', error);
+			this.error('addCommand', error);
 		}
 	}
 }

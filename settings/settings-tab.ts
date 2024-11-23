@@ -1,6 +1,7 @@
 import DooMWhitePlugins from 'main';
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import LocalImageServerPluginSettings from '../plugins/local-image-server/settings.ts';
+import { LogLevel } from './settings.js';
 
 export default class MyPluginSettingTab extends PluginSettingTab {
 	plugin: DooMWhitePlugins;
@@ -14,6 +15,32 @@ export default class MyPluginSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 
 		containerEl.empty();
+
+		new Setting(containerEl)
+			.setName("Log level")
+			.setDesc("Sets the log level")
+			.addDropdown((dropdown) => {
+				// Add the options for the dropdown, mapping LogLevel values directly
+				dropdown
+					.addOptions({
+						[LogLevel.Trace]: "Trace",
+						[LogLevel.Debug]: "Debug",
+						[LogLevel.Log]: "Log",
+						[LogLevel.Warn]: "Warning",
+						[LogLevel.Error]: "Error",
+					})
+					.setValue(DooMWhitePlugins.logLevel.toString()) // Set initial value from static logLevel
+					.onChange(async (value) => {
+						const level = parseInt(value, 10);
+						if (!isNaN(level) && level in LogLevel) {
+							DooMWhitePlugins.logLevel = level as LogLevel; // Update log level
+							this.plugin.settings.logLevel = level;
+							await this.plugin.saveSettings();
+						} else {
+							console.error(`Invalid log level selected: ${value}`);
+						}
+					});
+			});;
 
 		new Setting(containerEl)
 			.setName("Daily Notes")

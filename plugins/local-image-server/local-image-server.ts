@@ -16,17 +16,17 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 	private checkAndInstallHttpServer(callback: () => void) {
 		exec('npm list -g http-server', (error, stdout, stderr) => {
 			if (error || stderr) {
-				this.log("http-server not found, installing...", true);
+				this.debug("http-server not found, installing...", true);
 				exec('npm install -g http-server', (installError, installStdout, installStderr) => {
 					if (installError || installStderr) {
-						this.log(`Failed to install http-server: ${installStderr}, ${installError}`, true);
+						this.error('checkAndInstallHttpServer', `Failed to install http-server: ${installStderr}, ${installError}`);
 					} else {
-						this.log("http-server installed successfully!", true);
+						this.debug("http-server installed successfully!", true);
 					}
 					callback();
 				});
 			} else {
-				this.log("http-server already installed.", true);
+				this.debug("http-server already installed.", true);
 				callback();
 			}
 		});
@@ -52,7 +52,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 			serverArgs.push(`--cert ${certificatePath}`)
 
 			const keyPath = join(this.getVaultPath(), 'certificates', 'localhost-key.pem');
-			if (!existsSync(certificatePath)) throw new Error(`SSL key file not found at ${keyPath}`);
+			if (!existsSync(keyPath)) throw new Error(`SSL key file not found at ${keyPath}`);
 			serverArgs.push(`--key ${keyPath}`)
 		}
 
@@ -63,13 +63,13 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 		const serverCommand = `http-server ${serverArgs.join(' ')}`;
 		this.serverProcess = exec(serverCommand, (error, stdout, stderr) => {
 			if (error) {
-				this.log(`Error starting server: ${stderr}`, true);
+				this.error('startLocalServer', `Error starting server: ${error.message}`);
 			}
 			if (stdout) {
 				this.log(`Server stdout: ${stdout}`, true);
 			}
 			if (stderr) {
-				this.log(`Server stderr: ${stderr}`, true);
+				this.error('Server stderr:', stderr);
 			}
 		});
 
@@ -79,7 +79,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 		});
 
 		this.serverProcess.stderr?.on('data', (data: string) => {
-			this.log(`Server stderr: ${data}`, true);
+			this.error('Server stderr:', data);
 		});
 
 		this.serverProcess.on('close', (code: number) => {
@@ -109,7 +109,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 			return;
 		}
 
-		this.log(`Attempting to find and kill any running http-server processes associated with the vault`, true, 700);
+		this.trace(`Attempting to find and kill any running http-server processes associated with the vault`, true, 700);
 
 		// Use WMIC to find processes with `http-server` and the vault path in the command line
 		const vaultPath = this.getVaultPath().replace(/\\/g, '\\\\'); // Escape backslashes for WMIC
@@ -127,29 +127,29 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 				.filter(Boolean);
 
 			if (!pids || pids.length === 0) {
-				this.log('No http-server process associated with the vault found.', true, 700);
+				this.debug('No http-server process associated with the vault found.', true, 700);
 				return;
 			}
 
-			this.log(`Found http-server process(es): ${pids.join(', ')}`, true, 700);
+			this.debug(`Found http-server process(es): ${pids.join(', ')}`, true, 700);
 
 			// Kill each process synchronously
 			pids.forEach((pid) => {
 				try {
 					const killCommand = `taskkill /PID ${pid} /F`;
 
-					this.log(`Executing kill command for PID ${pid}: ${killCommand}`, true, 700);
+					this.debug(`Executing kill command for PID ${pid}: ${killCommand}`, true, 700);
 
 					// Run the kill command synchronously
 					execSync(killCommand);
 
 					this.log(`Successfully killed http-server process with PID ${pid}`, true, 700);
 				} catch (killError) {
-					this.log(`Failed to kill process ${pid}: ${killError.message}`, true, 700);
+					this.error('killServerProcess', `Failed to kill process ${pid}: ${killError.message}`);
 				}
 			});
 		} catch (error) {
-			this.logError('killServerProcess', `Error finding or killing http-server process: ${error.message}`);
+			this.error('killServerProcess', `Error finding or killing http-server process: ${error.message}`);
 		}
 	}
 

@@ -9,7 +9,7 @@ import RelatedNotesPlugin from 'plugins/related-notes/related-notes';
 import RelatedNotesPluginSettings from 'plugins/related-notes/settings';
 import MyPluginSettingTab from 'settings/settings-tab';
 import BasePluginModule from 'utils/base-plugin-module';
-import { DEFAULT_SETTINGS, loadSettings, PluginSettings, saveSettings } from './settings/settings';
+import { DEFAULT_SETTINGS, loadSettings, LogLevel, PluginSettings, saveSettings } from './settings/settings';
 
 export interface PluginModule {
 	loaded: boolean;
@@ -18,6 +18,8 @@ export interface PluginModule {
 }
 
 export default class DooMWhitePlugins extends Plugin {
+	static logLevel = LogLevel.Warn;
+
 	settings: PluginSettings;
 
 	private dailyNotesPlugin: BasePluginModule<DailyNotesPluginSettings> = new DailyNotesPlugin(this);
@@ -35,6 +37,7 @@ export default class DooMWhitePlugins extends Plugin {
 	async onload() {
 		// Load settings
 		this.settings = await loadSettings(this, DEFAULT_SETTINGS);
+		DooMWhitePlugins.logLevel = this.settings.logLevel;
 
 		if (this.settings.enableDailyNotesPlugin) {
 			this.dailyNotesPlugin.load(this.settings.dailyNotesPluginSettings);

@@ -4,8 +4,17 @@ import FolderNotesPluginSettings from '../plugins/folder-notes/settings.ts';
 import LocalImageServerPluginSettings from '../plugins/local-image-server/settings.ts';
 import RelatedNotesPluginSettings from '../plugins/related-notes/settings';
 
+export enum LogLevel {
+	Trace,
+	Debug,
+	Log,
+	Warn,
+	Error
+}
+
 export interface PluginSettings {
 	mySetting: string;
+	logLevel: LogLevel;
 	enableDailyNotesPlugin: boolean;
 	enableFolderNotesPlugin: boolean;
 	enableRelatedNotesPlugin: boolean;
@@ -18,6 +27,7 @@ export interface PluginSettings {
 
 export const DEFAULT_SETTINGS: PluginSettings = {
 	mySetting: 'default',
+	logLevel: LogLevel.Warn,
 	enableDailyNotesPlugin: true,
 	enableFolderNotesPlugin: true,
 	enableRelatedNotesPlugin: true,
