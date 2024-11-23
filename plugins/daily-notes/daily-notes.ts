@@ -1,8 +1,13 @@
-import { Notice, TFolder } from 'obsidian';
+import { Plugin } from 'obsidian';
+import { TFolder } from 'obsidian';
 import BasePluginModule from 'utils/base-plugin-module';
 import DailyNotesPluginSettings from './settings.ts';
 
 export default class DailyNotesPlugin extends BasePluginModule<DailyNotesPluginSettings> {
+
+	constructor(plugin: Plugin) {
+		super('DailyNotesPlugin', plugin)
+	}
 
 	onLoad(): void {
 		this.addContexMenuItemToFileMenu(
@@ -28,9 +33,9 @@ related_notes:
 		const existingFile = this.plugin.app.vault.getAbstractFileByPath(dailyNotePath);
 		if (!existingFile) {
 			await this.plugin.app.vault.create(dailyNotePath, content);
-			new Notice(`Created daily note at '${dailyNotePath}'.`, 3500);
+			this.log(`Created daily note at '${dailyNotePath}'.`, true, 3500);
 		} else {
-			new Notice("Daily note already exists in this folder.");
+			this.log("Daily note already exists in this folder.", true);
 		}
 	}
 

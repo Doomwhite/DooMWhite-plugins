@@ -11,9 +11,9 @@ export interface PluginSettings {
 	enableRelatedNotesPlugin: boolean;
 	enableLocalImageServerPlugin: boolean;
 	dailyNotesPluginSettings: DailyNotesPluginSettings;
-	folderNotesPlugin: FolderNotesPluginSettings;
-	relatedNotesPlugin: RelatedNotesPluginSettings;
-	localImageServerPlugin: LocalImageServerPluginSettings;
+	folderNotesPluginSettings: FolderNotesPluginSettings;
+	relatedNotesPluginSettings: RelatedNotesPluginSettings;
+	localImageServerPluginSettings: LocalImageServerPluginSettings;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -23,9 +23,9 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	enableRelatedNotesPlugin: true,
 	enableLocalImageServerPlugin: true,
 	dailyNotesPluginSettings: new DailyNotesPluginSettings(),
-	folderNotesPlugin: new FolderNotesPluginSettings(),
-	relatedNotesPlugin: new RelatedNotesPluginSettings(),
-	localImageServerPlugin: new LocalImageServerPluginSettings()
+	folderNotesPluginSettings: new FolderNotesPluginSettings(),
+	relatedNotesPluginSettings: new RelatedNotesPluginSettings(),
+	localImageServerPluginSettings: new LocalImageServerPluginSettings()
 }
 
 function restorePrototypes<T>(target: T | null | undefined, defaultInstance: T): T {

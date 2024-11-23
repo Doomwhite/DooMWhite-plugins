@@ -1,8 +1,13 @@
+import { Plugin } from 'obsidian';
 import { App, ButtonComponent, DropdownComponent, Modal, Notice, TAbstractFile, TextComponent, TFile, TFolder } from 'obsidian';
 import BasePluginModule from '../../utils/base-plugin-module';
 import RelatedNotesPluginSettings from './settings';
 
 export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPluginSettings> {
+
+	constructor(plugin: Plugin) {
+		super('RelatedNotesPlugin', plugin)
+	}
 
 	onLoad(): void {
 		this.addCommand(
@@ -153,7 +158,7 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 		selectedLink?: string
 	) {
 		if (!selectedLink && !folder) {
-			new Notice(`It's not possible to use the folder name of a file with no parent`)
+			this.log(`It's not possible to use the folder name of a file with no parent`)
 			return;
 		}
 
@@ -191,7 +196,7 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 			}
 		}
 
-		new Notice(`File property successfully added to all files in the folder (${folder!.path})!`, 3000)
+		this.log(`File property successfully added to all files in the folder (${folder!.path})!`, true, 3000)
 	}
 
 	private getChildrenMarkdownFiles(folder: TFolder): TFile[] {

@@ -1,8 +1,13 @@
-import { Notice, TFile, TFolder } from 'obsidian';
+import { Plugin } from 'obsidian';
+import { TFile, TFolder } from 'obsidian';
 import BasePluginModule from '../../utils/base-plugin-module';
 import FolderNotesPluginSettings from './settings.ts';
 
 export default class FolderNotesPlugin extends BasePluginModule<FolderNotesPluginSettings> {
+
+	constructor(plugin: Plugin) {
+		super('FolderNotesPlugin', plugin)
+	}
 
 	onLoad(): void {
 		this.addContexMenuItemToFileMenu(
@@ -47,7 +52,7 @@ export default class FolderNotesPlugin extends BasePluginModule<FolderNotesPlugi
 			await this.modifyFolderNote(existingNote, waypointMagicString);
 		} else {
 			await this.plugin.app.vault.create(folderNotePath, waypointMagicString);
-			new Notice(`Created the folder note '${folderNoteName}'.`, 3500);
+			this.log(`Created the folder note '${folderNoteName}'.`, true, 3500);
 		}
 	}
 
@@ -56,7 +61,7 @@ export default class FolderNotesPlugin extends BasePluginModule<FolderNotesPlugi
 		if (!content.includes('%% Begin Waypoint %%')) {
 			const updatedContent = `${waypointMagicString}\n${content}`;
 			await this.plugin.app.vault.modify(folderNote, updatedContent);
-			new Notice(`Updated the content of '${folderNote.basename}'`, 3500);
+			this.log(`Updated the content of '${folderNote.basename}'`, true, 3500);
 		}
 	}
 

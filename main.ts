@@ -24,7 +24,7 @@ export default class DooMWhitePlugins extends Plugin {
 	private folderNotesPlugin: BasePluginModule<FolderNotesPluginSettings> = new FolderNotesPlugin(this);
 	private relatedNotesPlugin: BasePluginModule<RelatedNotesPluginSettings> = new RelatedNotesPlugin(this);
 	private localImageServerPlugin: BasePluginModule<LocalImageServerPluginSettings> = new LocalImageServerPlugin(this);
-	private plugins: BasePluginModule<unknown>[] = [
+	private plugins: BasePluginModule<any>[] = [
 		this.dailyNotesPlugin,
 		this.folderNotesPlugin,
 		this.relatedNotesPlugin,
@@ -35,22 +35,21 @@ export default class DooMWhitePlugins extends Plugin {
 	async onload() {
 		// Load settings
 		this.settings = await loadSettings(this, DEFAULT_SETTINGS);
-		console.log('this.settings', this.settings);
 
 		if (this.settings.enableDailyNotesPlugin) {
 			this.dailyNotesPlugin.load(this.settings.dailyNotesPluginSettings);
 		}
 
 		if (this.settings.enableFolderNotesPlugin) {
-			this.folderNotesPlugin.load(this.settings.folderNotesPlugin);
+			this.folderNotesPlugin.load(this.settings.folderNotesPluginSettings);
 		}
 
 		if (this.settings.enableRelatedNotesPlugin) {
-			this.relatedNotesPlugin.load(this.settings.relatedNotesPlugin);
+			this.relatedNotesPlugin.load(this.settings.relatedNotesPluginSettings);
 		}
 
 		if (this.settings.enableLocalImageServerPlugin) {
-			this.localImageServerPlugin.load(this.settings.localImageServerPlugin);
+			this.localImageServerPlugin.load(this.settings.localImageServerPluginSettings);
 		}
 
 		this.addSettings();
@@ -83,33 +82,61 @@ export default class DooMWhitePlugins extends Plugin {
 		}
 	}
 
+	async toggleErrorWrapingDailyNotesPlugin(enable: boolean) {
+		this.settings.dailyNotesPluginSettings.enableErrorWrapping = enable;
+		await this.saveSettings();
+		this.dailyNotesPlugin.unload();
+		this.dailyNotesPlugin.load(this.settings.dailyNotesPluginSettings);
+	}
+
 	async toggleEnableFolderNotesPlugin(enable: boolean) {
 		this.settings.enableFolderNotesPlugin = enable;
 		await this.saveSettings();
 		if (enable) {
-			this.folderNotesPlugin.load(this.settings.folderNotesPlugin);
+			this.folderNotesPlugin.load(this.settings.folderNotesPluginSettings);
 		} else {
 			this.folderNotesPlugin.unload();
 		}
+	}
+
+	async toggleErrorWrapingFolderNotesPlugin(enable: boolean) {
+		this.settings.folderNotesPluginSettings.enableErrorWrapping = enable;
+		await this.saveSettings();
+		this.folderNotesPlugin.unload();
+		this.folderNotesPlugin.load(this.settings.folderNotesPluginSettings);
 	}
 
 	async toggleEnableRelatedNotesPlugin(enable: boolean) {
 		this.settings.enableRelatedNotesPlugin = enable;
 		await this.saveSettings();
 		if (enable) {
-			this.relatedNotesPlugin.load(this.settings.relatedNotesPlugin);
+			this.relatedNotesPlugin.load(this.settings.relatedNotesPluginSettings);
 		} else {
 			this.relatedNotesPlugin.unload();
 		}
+	}
+
+	async toggleErrorWrapingRelatedNotesPlugin(enable: boolean) {
+		this.settings.relatedNotesPluginSettings.enableErrorWrapping = enable;
+		await this.saveSettings();
+		this.relatedNotesPlugin.unload();
+		this.relatedNotesPlugin.load(this.settings.relatedNotesPluginSettings);
 	}
 
 	async toggleEnableLocalImageServerPlugin(enable: boolean) {
 		this.settings.enableLocalImageServerPlugin = enable;
 		await this.saveSettings();
 		if (enable) {
-			this.localImageServerPlugin.load(this.settings.localImageServerPlugin);
+			this.localImageServerPlugin.load(this.settings.localImageServerPluginSettings);
 		} else {
 			this.localImageServerPlugin.unload();
 		}
+	}
+
+	async toggleErrorWrapingLocalImageServerPlugin(enable: boolean) {
+		this.settings.localImageServerPluginSettings.enableErrorWrapping = enable;
+		await this.saveSettings();
+		this.localImageServerPlugin.unload();
+		this.localImageServerPlugin.load(this.settings.localImageServerPluginSettings);
 	}
 }
