@@ -1,6 +1,8 @@
 import { Plugin } from 'obsidian';
 import DailyNotesPlugin from 'plugins/daily-notes/daily-notes';
 import DailyNotesPluginSettings from 'plugins/daily-notes/settings.ts';
+import EmbedLinksPlugin from 'plugins/embed-links/embed-links';
+import { EmbedLinksPluginSettings } from 'plugins/embed-links/settings';
 import FolderNotesPlugin from 'plugins/folder-notes/folder-notes';
 import FolderNotesPluginSettings from 'plugins/folder-notes/settings.ts';
 import LocalImageServerPlugin from 'plugins/local-image-server/local-image-server';
@@ -9,9 +11,7 @@ import RelatedNotesPlugin from 'plugins/related-notes/related-notes';
 import RelatedNotesPluginSettings from 'plugins/related-notes/settings';
 import MyPluginSettingTab from 'settings/settings-tab';
 import BasePluginModule from 'utils/base-plugin-module';
-import { DEFAULT_SETTINGS, loadSettings, LogLevel, PluginSettings, saveSettings } from './settings/settings';
-import { EmbedLinksPluginSettings } from 'plugins/embed-links/settings';
-import EmbedLinksPlugin from 'plugins/embed-links/embed-links';
+import { loadSettings, LogLevel, PluginSettings, saveSettings } from './settings/settings';
 
 export interface PluginModule {
 	loaded: boolean;
@@ -40,7 +40,7 @@ export default class DooMWhitePlugins extends Plugin {
 
 	async onload() {
 		// Load settings
-		this.settings = await loadSettings(this, DEFAULT_SETTINGS);
+		this.settings = await loadSettings(this);
 		DooMWhitePlugins.logLevel = this.settings.logLevel;
 
 		if (this.settings.enableDailyNotesPlugin) {

@@ -24,6 +24,7 @@ import { ExEditor, Selected } from './exEditor';
 import { createParser, getParsersNames } from './parser';
 import { EmbedLinksPluginSettings } from './settings';
 import EmbedSuggest from './suggest';
+import { ImageExtractor } from 'utils/get-image-url';
 
 interface PasteInfo {
 	trigger: boolean;
@@ -33,6 +34,7 @@ interface PasteInfo {
 export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginSettings> {
 
 	readonly exEditor = new ExEditor(this);
+	readonly imageExtractor = new ImageExtractor(this);
 
 	pasteInfo: PasteInfo;
 
@@ -115,8 +117,19 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 
 		this.registerMarkdownCodeBlockProcessor('embed', (source, el, ctx) => {
 			const info = parseYaml(source.trim()) as EmbedInfo;
+			this.trace(`info: ${info}`)
+			let image: string;
+
+			if (info.image.startsWith('http://') || info.image.startsWith('https://') || info.image.startsWith('file:///')) {
+				const protocolRemoved = info.image.replace(/^(https?:\/\/|file:\/\/\/)/, '');
+				const imageName = protocolRemoved.split('/').slice(1).join('/');
+				image = this.imageExtractor.getObisidianImageUrl(imageName);
+			} else {
+				image = info.image;
+			}
+
 			const html = HTMLTemplate.replace(/{{title}}/gm, info.title)
-				.replace(/{{{image}}}/gm, info.image)
+				.replace(/{{{image}}}/gm, image)
 				.replace(/{{description}}/gm, info.description)
 				.replace(/{{{url}}}/gm, info.url);
 			let parser = new DOMParser();
@@ -202,7 +215,8 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 					const imageDownloader = new ImageDownloader(tempPath, this)
 					const imageName = await imageDownloader.downloadImage(imageUrl, finalPath);
 
-					const localUrl = `http://localhost:8181/${imageName}`;
+					// const localUrl = `https://localhost:8181/${imageName}`;
+					const localUrl = `file:///attachments/${imageName}`;
 
 					// Prepare the escaped data
 					const escapedData = {

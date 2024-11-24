@@ -67,13 +67,12 @@ function restorePrototypes<T extends object>(target: T | null | undefined, defau
 }
 
 export async function loadSettings(
-	plugin: DooMWhitePlugins,
-	defaultSettings: PluginSettings
+	plugin: DooMWhitePlugins
 ): Promise<PluginSettings> {
 	const rawData = await plugin.loadData();
 	if (!(typeof rawData === "object" || typeof rawData === "undefined")) throw new InvalidTypeException(nameof(rawData));
 
-	return restorePrototypes(rawData, defaultSettings);
+	return restorePrototypes(rawData, DEFAULT_SETTINGS);
 }
 
 export async function saveSettings(plugin: DooMWhitePlugins) {
