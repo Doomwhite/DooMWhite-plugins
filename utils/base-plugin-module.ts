@@ -244,7 +244,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	registerEditorSuggest(id: string, editorSuggest: EditorSuggest<any>) {
 		this.info(`editorSuggest ${editorSuggest}`)
 
-		const register = `${nameof(this.registerEditorSuggest)}-${id}`
+		const register = `registerEditorSuggest-${id}`
 		if (this.registers.contains(register)) return;
 		this.registers.push(register);
 
@@ -254,7 +254,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	registerEvent(id: 'editor-paste', eventRef: EventRef) {
 		this.info(`eventRef ${eventRef}`)
 
-		const register = `${nameof(this.registerEvent)}-${id}`
+		const register = `registerEvent-${id}`
 		if (this.registers.contains(register)) return;
 		this.registers.push(register);
 
@@ -268,7 +268,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	) {
 		this.info(`language ${language} handler ${handler} sortOrder ${sortOrder}`)
 
-		const register = `${nameof(this.registerMarkdownCodeBlockProcessor)}-${language}`
+		const register = `registerMarkdownCodeBlockProcessor-${language}`
 		if (this.registers.contains(register)) return;
 		this.registers.push(register);
 
