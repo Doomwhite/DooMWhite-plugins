@@ -4,10 +4,10 @@ import { LogLevel } from 'settings/settings';
 import { NotImplementedError } from './exceptions';
 
 export interface Logger {
-	toast(logLevel: LogLevel, message: string | any[], duration?: number): void;
-	trace(message: string | any[], showToast?: boolean, duration?: number): void;
-	info(message: string | any[], showToast?: boolean, duration?: number): void;
-	debug(message: string | any[], showToast?: boolean, duration?: number): void;
+	toast(logLevel: LogLevel, message: any | any[], duration?: number): void;
+	trace(message: any | any[], showToast?: boolean, duration?: number): void;
+	info(message: any | any[], showToast?: boolean, duration?: number): void;
+	debug(message: any | any[], showToast?: boolean, duration?: number): void;
 	warn(methodName: string, error: unknown): void;
 	error(methodName: string, error: unknown): void;
 }
@@ -68,17 +68,17 @@ export class LoggingFunctions implements Logger {
 	}
 
 	// Trace log function
-	trace(message: string | any[], showToast: boolean = false, duration?: number) {
+	trace(message: any | any[], showToast: boolean = false, duration?: number) {
 		this.log(LogLevel.Trace, 'trace', message, showToast, duration);
 	}
 
 	// Debug log function
-	debug(message: string | any[], showToast: boolean = false, duration?: number) {
+	debug(message: any | any[], showToast: boolean = false, duration?: number) {
 		this.log(LogLevel.Debug, 'debug', message, showToast, duration);
 	}
 
 	// Info log function
-	info(message: string | any[], showToast: boolean = false, duration?: number) {
+	info(message: any | any[], showToast: boolean = false, duration?: number) {
 		this.log(LogLevel.Info, 'info', message, showToast, duration);
 	}
 
@@ -94,7 +94,7 @@ export class LoggingFunctions implements Logger {
 
 	private log(
 		level: LogLevel, method: 'trace' | 'debug' | 'info' | 'warn' | 'error',
-		message: string | any[],
+		message: any | any[],
 		showToast: boolean,
 		duration?: number,
 		methodName?: string,
@@ -108,15 +108,27 @@ export class LoggingFunctions implements Logger {
 		// Log the message to the console
 		switch (method) {
 			case 'trace': {
-				console.trace(`%c${pluginName}`, style, message);
+				if (!Array.isArray(message)) {
+					console.trace(`%c${pluginName}`, style, message);
+				} else {
+					console.trace(`%c${pluginName}`, style, message[0], ...message.slice(1));
+				}
 				break;
 			}
 			case 'debug': {
-				console.debug(`%c${pluginName}`, style, message);
+				if (!Array.isArray(message)) {
+					console.debug(`%c${pluginName}`, style, message);
+				} else {
+					console.debug(`%c${pluginName}`, style, message[0], ...message.slice(1));
+				}
 				break;
 			}
 			case 'info': {
-				console.info(`%c${pluginName}`, style, message);
+				if (!Array.isArray(message)) {
+					console.info(`%c${pluginName}`, style, message);
+				} else {
+					console.info(`%c${pluginName}`, style, message[0], ...message.slice(1));
+				}
 				break;
 			}
 			case 'warn': {
@@ -137,7 +149,7 @@ export class LoggingFunctions implements Logger {
 
 		// Show a toast if required
 		if (showToast) {
-			this.toast(level, Array.isArray(message) ? message.join(' ') : message, duration);
+			this.toast(level, Array.isArray(message) ? message.join(' ') : `${message}`, duration);
 		}
 	}
 }
