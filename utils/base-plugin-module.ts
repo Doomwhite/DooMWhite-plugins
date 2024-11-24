@@ -251,7 +251,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 		this.plugin.registerEditorSuggest(editorSuggest)
 	}
 
-	registerEvent(id: 'editor-paste', eventRef: EventRef) {
+	registerEvent(id: string, eventRef: EventRef) {
 		this.info(`eventRef ${eventRef}`)
 
 		const register = `registerEvent-${id}`

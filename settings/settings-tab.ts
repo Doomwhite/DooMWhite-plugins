@@ -374,5 +374,16 @@ export default class MyPluginSettingTab extends PluginSettingTab {
 				}),
 		];
 
+		containerEl.createEl('h3', { text: 'Select & Paste' });
+
+		new Setting(containerEl)
+			.setName("Enable")
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableSelectAndPastePlugin)
+				.onChange(async (value) => {
+					await this.plugin.toggleEnableSelectAndPastePlugin(value);
+				})
+			)
+
 	}
 }

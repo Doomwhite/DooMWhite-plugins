@@ -5,6 +5,7 @@ import DailyNotesPluginSettings from '../plugins/daily-notes/settings.ts';
 import FolderNotesPluginSettings from '../plugins/folder-notes/settings.ts';
 import LocalImageServerPluginSettings from '../plugins/local-image-server/settings.ts';
 import RelatedNotesPluginSettings from '../plugins/related-notes/settings';
+import SelectAndPastePluginSettings from 'plugins/select-and-paste/settings.ts.js';
 
 export enum LogLevel {
 	Trace,
@@ -22,11 +23,13 @@ export interface PluginSettings {
 	enableRelatedNotesPlugin: boolean;
 	enableLocalImageServerPlugin: boolean;
 	enableEmbedLinksPlugin: boolean;
+	enableSelectAndPastePlugin: boolean;
 	dailyNotesPluginSettings: DailyNotesPluginSettings;
 	folderNotesPluginSettings: FolderNotesPluginSettings;
 	relatedNotesPluginSettings: RelatedNotesPluginSettings;
 	localImageServerPluginSettings: LocalImageServerPluginSettings;
 	embedLinksPluginSettings: EmbedLinksPluginSettings;
+	selectAndPastePluginSettings: SelectAndPastePluginSettings;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -37,11 +40,13 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	enableRelatedNotesPlugin: true,
 	enableLocalImageServerPlugin: true,
 	enableEmbedLinksPlugin: true,
+	enableSelectAndPastePlugin: true,
 	dailyNotesPluginSettings: new DailyNotesPluginSettings(),
 	folderNotesPluginSettings: new FolderNotesPluginSettings(),
 	relatedNotesPluginSettings: new RelatedNotesPluginSettings(),
 	localImageServerPluginSettings: new LocalImageServerPluginSettings(),
-	embedLinksPluginSettings: new EmbedLinksPluginSettings()
+	embedLinksPluginSettings: new EmbedLinksPluginSettings(),
+	selectAndPastePluginSettings: new SelectAndPastePluginSettings()
 }
 
 function restorePrototypes<T extends object>(target: T | null | undefined, defaultInstance: T): T {

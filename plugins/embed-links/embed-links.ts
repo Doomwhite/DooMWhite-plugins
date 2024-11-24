@@ -25,6 +25,7 @@ import { createParser, getParsersNames } from './parser';
 import { EmbedLinksPluginSettings } from './settings';
 import EmbedSuggest from './suggest';
 import { ImageExtractor } from 'utils/get-image-url';
+import { computeFileHash } from 'utils/compute-file-hash';
 
 interface PasteInfo {
 	trigger: boolean;
@@ -259,23 +260,6 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 		}
 	}
 
-	/**
-	 * Generates a SHA-512 hash of a file's contents.
-	 *
-	 * @param filePath - The path to the file.
-	 * @returns A Promise that resolves to the SHA-512 hash string.
-	 */
-	async computeFileHash(filePath: string): Promise<string> {
-		return new Promise((resolve, reject) => {
-			const hash = crypto.createHash('sha512');
-			const stream = fs.createReadStream(filePath);
-
-			stream.on('data', (chunk) => hash.update(chunk));
-			stream.on('end', () => resolve(hash.digest('hex')));
-			stream.on('error', (err) => reject(err));
-		});
-	}
-
 	// Helper function to download the image and save it to the vault attachments folder
 	async downloadImage(url: string, tempPath: string, finalPath: string): Promise<string> {
 		this.info(`tempPath ${tempPath}`);
@@ -297,7 +281,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 						this.info(`Image downloaded to temporary path: ${tempPath}`);
 
 						// Generate the final file name using the current timestamp and the file extension
-						const fileHash = await this.computeFileHash(tempPath);
+						const fileHash = await computeFileHash(tempPath);
 						const finalFileName = `${fileHash}.${extension}`;
 						this.info(`finalFileName ${finalFileName}`);
 

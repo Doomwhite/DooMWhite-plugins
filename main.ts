@@ -12,6 +12,8 @@ import RelatedNotesPluginSettings from 'plugins/related-notes/settings';
 import MyPluginSettingTab from 'settings/settings-tab';
 import BasePluginModule from 'utils/base-plugin-module';
 import { loadSettings, LogLevel, PluginSettings, saveSettings } from './settings/settings';
+import SelectAndPastePluginSettings from 'plugins/select-and-paste/settings.ts';
+import SelectAndPastePlugin from 'plugins/select-and-paste/select-and-paste';
 
 export interface PluginModule {
 	loaded: boolean;
@@ -29,12 +31,14 @@ export default class DooMWhitePlugins extends Plugin {
 	private relatedNotesPlugin: BasePluginModule<RelatedNotesPluginSettings> = new RelatedNotesPlugin(this);
 	private localImageServerPlugin: BasePluginModule<LocalImageServerPluginSettings> = new LocalImageServerPlugin(this);
 	private embedLinksPlugin: BasePluginModule<EmbedLinksPluginSettings> = new EmbedLinksPlugin(this);
+	private selectAndPastePlugin: BasePluginModule<SelectAndPastePluginSettings> = new SelectAndPastePlugin(this);
 	private plugins: BasePluginModule<any>[] = [
 		this.dailyNotesPlugin,
 		this.folderNotesPlugin,
 		this.relatedNotesPlugin,
 		this.localImageServerPlugin,
-		this.embedLinksPlugin
+		this.embedLinksPlugin,
+		this.selectAndPastePlugin
 	];
 	private hasSettingsTab: boolean;
 
@@ -61,6 +65,10 @@ export default class DooMWhitePlugins extends Plugin {
 
 		if (this.settings.enableEmbedLinksPlugin) {
 			this.embedLinksPlugin.load(this.settings.embedLinksPluginSettings);
+		}
+
+		if (this.settings.enableSelectAndPastePlugin) {
+			this.selectAndPastePlugin.load(this.settings.selectAndPastePluginSettings);
 		}
 
 		this.addSettings();
@@ -158,6 +166,16 @@ export default class DooMWhitePlugins extends Plugin {
 			this.embedLinksPlugin.load(this.settings.embedLinksPluginSettings);
 		} else {
 			this.embedLinksPlugin.unload();
+		}
+	}
+
+	async toggleEnableSelectAndPastePlugin(enable: boolean) {
+		this.settings.enableSelectAndPastePlugin = enable;
+		await this.saveSettings();
+		if (enable) {
+			this.selectAndPastePlugin.load(this.settings.selectAndPastePluginSettings);
+		} else {
+			this.selectAndPastePlugin.unload();
 		}
 	}
 }
