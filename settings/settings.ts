@@ -1,15 +1,15 @@
 import DooMWhitePlugins from 'main';
+import { EmbedLinksPluginSettings } from 'plugins/embed-links/settings.js';
+import { InvalidTypeException } from 'utils/exceptions.js';
 import DailyNotesPluginSettings from '../plugins/daily-notes/settings.ts';
 import FolderNotesPluginSettings from '../plugins/folder-notes/settings.ts';
 import LocalImageServerPluginSettings from '../plugins/local-image-server/settings.ts';
 import RelatedNotesPluginSettings from '../plugins/related-notes/settings';
-import { InvalidOperationException, InvalidTypeException } from 'utils/exceptions.js';
-import { EmbedLinksPluginSettings } from 'plugins/embed-links/settings.js';
 
 export enum LogLevel {
 	Trace,
 	Debug,
-	Log,
+	Info,
 	Warn,
 	Error
 }

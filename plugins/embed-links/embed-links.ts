@@ -21,7 +21,7 @@ import {
 	SPINNER,
 } from './constants';
 import { ExEditor, Selected } from './exEditor';
-import { parsers } from './parser';
+import { createParser, getParsersNames } from './parser';
 import { EmbedLinksPluginSettings } from './settings';
 import EmbedSuggest from './suggest';
 
@@ -32,6 +32,7 @@ interface PasteInfo {
 
 export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginSettings> {
 
+	readonly exEditor = new ExEditor(this);
 
 	pasteInfo: PasteInfo;
 
@@ -40,7 +41,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 	}
 
 	async getText(editor: Editor): Promise<Selected> {
-		let selected = ExEditor.getSelectedText(editor, this.settings.debug);
+		let selected = this.exEditor.getSelectedText(editor, this.settings.debug);
 		let cursor = editor.getCursor();
 		if (!selected.can) {
 			selected.text = await navigator.clipboard.readText();
@@ -98,7 +99,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 				]);
 			},
 		);
-		Object.keys(parsers).forEach((name) => {
+		getParsersNames().forEach((name) => {
 			this.addEditorCommand(
 				`embed-link-${name}`,
 				`Embed link with ${name}`,
@@ -120,7 +121,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 				.replace(/{{{url}}}/gm, info.url);
 			let parser = new DOMParser();
 			var doc = parser.parseFromString(html, 'text/html');
-			this.log(`${doc}`);
+			this.info(`${doc}`);
 			el.replaceWith(doc.body.firstChild as ChildNode);
 		});
 	}
@@ -184,16 +185,12 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 		let idx = 0;
 		while (idx < selectedParsers.length) {
 			const selectedParser = selectedParsers[idx];
-			if (this.settings.debug) {
-				this.log(`Link Embed: parser, ${selectedParser}`);
-			}
-			const parser = parsers[selectedParser];
+			this.debug(`Link Embed: parser, ${selectedParser}`);
+			const parser = createParser(selectedParser, this);
 			parser.debug = this.settings.debug;
 			try {
 				const data = await parser.parse(url);
-				if (this.settings.debug) {
-					this.log(`Link Embed: meta data, ${data}`);
-				}
+				this.debug(`Link Embed: meta data, ${data}`);
 
 				// Download the image to the vault
 
@@ -202,7 +199,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 					const finalPath = `${this.getVaultPath()}/attachments/`; // Final desired path
 
 					const tempPath = path.join(`${this.getVaultPath()}/attachments/`, 'temp_image'); // Temporary path (this can be anything)
-					const imageDownloader = new ImageDownloader(tempPath)
+					const imageDownloader = new ImageDownloader(tempPath, this)
 					const imageName = await imageDownloader.downloadImage(imageUrl, finalPath);
 
 					const localUrl = `http://localhost:8181/${imageName}`;
@@ -237,7 +234,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 					this.error('Link Embed: error', error);
 					idx += 1;
 					if (idx === selectedParsers.length) {
-						this.errorNotice();
+						this.warn('embedUrl', 'Link Embed: Failed to fetch data');
 					}
 				}
 			} catch (error) {
@@ -267,15 +264,15 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 
 	// Helper function to download the image and save it to the vault attachments folder
 	async downloadImage(url: string, tempPath: string, finalPath: string): Promise<string> {
-		this.log(`tempPath ${tempPath}`);
+		this.info(`tempPath ${tempPath}`);
 
 		return new Promise((resolve, reject) => {
 			https.get(url, (response) => {
-				this.log(`response ${response}`);
+				this.info(`response ${response}`);
 				// Get the file extension from the Content-Type header (e.g., image/jpeg or image/png)
 				const contentType = response.headers['content-type'];
 				const extension = contentType ? contentType.split('/')[1] : 'jpg';  // Default to jpg if not found
-				this.log(`extension ${extension}`);
+				this.info(`extension ${extension}`);
 
 				// Create a temporary file stream to download the image
 				const tempFile = fs.createWriteStream(tempPath);
@@ -283,16 +280,16 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 				response.pipe(tempFile);
 				tempFile.on('finish', async () => {
 					tempFile.close(async () => {
-						this.log(`Image downloaded to temporary path: ${tempPath}`);
+						this.info(`Image downloaded to temporary path: ${tempPath}`);
 
 						// Generate the final file name using the current timestamp and the file extension
 						const fileHash = await this.computeFileHash(tempPath);
 						const finalFileName = `${fileHash}.${extension}`;
-						this.log(`finalFileName ${finalFileName}`);
+						this.info(`finalFileName ${finalFileName}`);
 
 						// Define the final path with the generated name
 						const finalFilePath = path.join(finalPath, finalFileName);
-						this.log(`finalFilePath ${finalFilePath}`);
+						this.info(`finalFilePath ${finalFilePath}`);
 
 						// Ensure that the final directory exists
 						fs.mkdir(path.dirname(finalFilePath), { recursive: true }, (err) => {
@@ -306,7 +303,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 										this.error('downloadImage', `Error renaming the file: ${err}`);
 										reject(err);
 									} else {
-										this.log(`Image renamed and saved to: ${finalFilePath}`);
+										this.info(`Image renamed and saved to: ${finalFilePath}`);
 										resolve(finalFileName); // Return just the filename
 									}
 								});
@@ -324,13 +321,6 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 	public static isUrl(text: string): boolean {
 		const urlRegex = new RegExp(REGEX.URL, 'g');
 		return urlRegex.test(text);
-	}
-
-	errorNotice() {
-		if (this.settings.debug) {
-			console.log('Link Embed: Failed to fetch data');
-		}
-		new Notice(`Failed to fetch data`);
 	}
 
 }

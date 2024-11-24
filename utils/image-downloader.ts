@@ -2,35 +2,38 @@ import axios from "axios";
 import { createHash } from 'crypto';
 import fs from "fs-extra";
 import path from "path";
+import { Logger } from './logging-functions';
 
 class ImageDownloader {
   private readonly tempPath: string;
+  logger: Logger;
 
-  constructor(tempPath: string) {
+  constructor(tempPath: string, logger: Logger) {
     this.tempPath = tempPath;
+    this.logger = logger;
   }
 
   async downloadImage(url: string, finalPath: string): Promise<string> {
-    console.log("Starting image download...");
+    this.logger.debug("Starting image download...");
 
     try {
       // Step 1: Download the image to the temporary path
       const contentType = await this.downloadToTempFile(url);
       const extension = this.getExtensionFromContentType(contentType);
-      console.log(`Image downloaded with extension: ${extension}`);
+      this.logger.debug(`Image downloaded with extension: ${extension}`);
 
       // Step 2: Generate a hash-based filename
-      const fileHash = await ImageDownloader.computeFileHash(this.tempPath);
+      const fileHash = await this.computeFileHash(this.tempPath);
       const finalFileName = `${fileHash}.${extension}`;
-      console.log(`Final file name: ${finalFileName}`);
+      this.logger.debug(`Final file name: ${finalFileName}`);
 
       // Step 3: Move the file to its final destination
       const finalFilePath = await this.moveToFinalPath(finalPath, finalFileName);
-      console.log(`File saved to: ${finalFilePath}`);
+      this.logger.debug(`File saved to: ${finalFilePath}`);
 
       return finalFileName;
     } catch (error) {
-      console.error("Error during image processing:", error);
+      this.logger.error("Error during image processing:", error);
       await fs.remove(this.tempPath); // Cleanup temp file on error
       throw error;
     }
@@ -41,16 +44,16 @@ class ImageDownloader {
    * @returns The Content-Type header of the response.
    */
   private async downloadToTempFile(url: string): Promise<string> {
-    console.log("Downloading image from:", url);
+    this.logger.debug("Downloading image from:, " + url);
 
     const response = await axios.get(url, { responseType: 'arraybuffer' });
-    console.log('response.data', response.data);
+    this.logger.debug('response.data', response.data);
 
     // Write the buffer directly to a temporary file
     await fs.ensureFile(this.tempPath);
 
     fs.writeFileSync(this.tempPath, Buffer.from(response.data), { encoding: 'binary' });
-    console.log("Image saved to temp path:", this.tempPath);
+    this.logger.debug("Image saved to temp path:, " + this.tempPath);
 
     // Return the content type
     return response.headers["content-type"] || "application/octet-stream";
@@ -67,8 +70,8 @@ class ImageDownloader {
   /**
    * Computes a hash of a file's contents.
    */
-  private static async computeFileHash(filePath: string): Promise<string> {
-    console.log("Computing file hash...");
+  private async computeFileHash(filePath: string): Promise<string> {
+    this.logger.trace("Computing file hash...");
     const fileBuffer = await fs.readFile(filePath);
     return createHash("sha256").update(fileBuffer).digest("hex");
   }
@@ -77,7 +80,7 @@ class ImageDownloader {
    * Moves a file from a temporary location to its final destination.
    */
   private async moveToFinalPath(finalPath: string, fileName: string): Promise<string> {
-    console.log("Moving file to final destination...");
+    this.logger.debug("Moving file to final destination...");
 
     const finalFilePath = path.join(finalPath, fileName);
 

@@ -1,21 +1,12 @@
-import DooMWhitePlugins from 'main';
-import { Editor, EditorSuggest, EventRef, FileSystemAdapter, MarkdownFileInfo, MarkdownPostProcessorContext, MarkdownView, Menu, Notice, Plugin, TAbstractFile } from 'obsidian';
+import { Editor, EditorSuggest, EventRef, FileSystemAdapter, MarkdownFileInfo, MarkdownPostProcessorContext, MarkdownView, Menu, Plugin, TAbstractFile } from 'obsidian';
 import { LogLevel } from 'settings/settings';
+import { LoggingFunctions } from './logging-functions';
 
 export interface ErrorWrappingSettings {
 	enableErrorWrapping: boolean;
 }
 
-const logStyles = {
-	[LogLevel.Trace]: 'color: #00BFFF; font-weight: normal',
-	[LogLevel.Log]: 'color: #32CD32; font-weight: normal',
-	[LogLevel.Debug]: 'color: #FFD700; font-weight: normal',
-	[LogLevel.Warn]: 'color: #FFA500; font-weight: bold',
-	[LogLevel.Error]: 'color: #FF6347; font-weight: bold'
-}
-
-export default abstract class BasePluginModule<T extends ErrorWrappingSettings> {
-	readonly name!: string;
+export default abstract class BasePluginModule<T extends ErrorWrappingSettings> extends LoggingFunctions {
 	readonly plugin: Plugin;
 
 	settings!: T;
@@ -26,9 +17,8 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	private registeredCommands: string[] = [];
 	private registers: string[] = []
 
-
 	protected constructor(name: string, plugin: Plugin) {
-		this.name = name;
+		super(name)
 		this.plugin = plugin;
 	}
 
@@ -125,96 +115,6 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 		}
 	}
 
-	private getErrorMessage(error: any, fnName: string) {
-		const errorMessage = error instanceof Error ? `${error.message}\n${error.stack}` : String(error);
-		return `Error in ${fnName}: ${errorMessage}`;
-	}
-
-	toast(message: string, duration?: number) {
-		console.log('DooMWhitePlugins.logLevel', DooMWhitePlugins.logLevel);
-		// Create a DocumentFragment to allow custom HTML
-		const fragment = document.createDocumentFragment();
-
-		// Create a styled span element for the plugin name
-		const pluginNameElement = document.createElement('span');
-		pluginNameElement.style.color = '#FF6347'; // Change to desired color
-		pluginNameElement.style.fontWeight = 'bold'; // Apply bold font style
-		pluginNameElement.textContent = `[${this.name}]`;
-
-		// Create another span for the rest of the message
-		const messageElement = document.createElement('span');
-		messageElement.textContent = ` \n${message}`;
-
-		// Append the plugin name and message elements to the fragment
-		fragment.appendChild(pluginNameElement);
-		fragment.appendChild(messageElement);
-
-		// Create the Notice with the DocumentFragment
-		new Notice(fragment, duration);
-	}
-
-	// Trace log function
-	trace(message: string, showToast: boolean = false, duration?: number) {
-		if (DooMWhitePlugins.logLevel > LogLevel.Trace) return;
-
-		const pluginName = `[${this.name}]`;
-		const traceStyle = logStyles[LogLevel.Trace]
-		console.trace(`%c${pluginName}`, traceStyle, message);
-
-		if (showToast) {
-			this.toast(message, duration);
-		}
-	}
-
-	// Regular log function
-	log(message: string, showToast: boolean = false, duration?: number) {
-		if (DooMWhitePlugins.logLevel > LogLevel.Log) return;
-
-		const pluginName = `[${this.name}]`;
-		const logStyle = logStyles[LogLevel.Log];
-		console.log(`%c${pluginName}`, logStyle, message);
-
-		if (showToast) {
-			this.toast(message, duration);
-		}
-	}
-
-	// Debug log function
-	debug(message: string, showToast: boolean = false, duration?: number) {
-		if (DooMWhitePlugins.logLevel > LogLevel.Debug) return;
-
-		const pluginName = `[${this.name}]`;
-		const debugStyle = logStyles[LogLevel.Debug];
-		console.debug(`%c${pluginName}`, debugStyle, message);
-
-		if (showToast) {
-			this.toast(message, duration);
-		}
-	}
-
-	// Error log function
-	warn(methodName: string, error: unknown) {
-		if (DooMWhitePlugins.logLevel > LogLevel.Warn) return;
-
-		const errorStyle = logStyles[LogLevel.Warn];
-
-		const errorMessage = this.getErrorMessage(error, methodName);
-		const pluginName = `[${this.name}]`;
-		console.warn(`%c${pluginName}`, errorStyle, errorMessage);  // Error uses console.error
-		this.toast(errorMessage, 5000);
-	}
-
-	// Error log function
-	error(methodName: string, error: unknown) {
-		if (DooMWhitePlugins.logLevel > LogLevel.Error) return;
-
-		const errorStyle = logStyles[LogLevel.Error];
-		const errorMessage = this.getErrorMessage(error, methodName);
-		const pluginName = `[${this.name}]`;
-		console.error(`%c${pluginName}`, errorStyle, errorMessage);  // Error uses console.error
-		this.toast(errorMessage, 0);
-	}
-
 	wrapWithErrorHandling<TArgs extends unknown[], TResult>(
 		fn: (...args: TArgs) => TResult | Promise<TResult>,
 		fnName: string
@@ -228,7 +128,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 					if (result instanceof Promise) {
 						return result.catch((error) => {
 							const errorMessage = this.getErrorMessage(error, fnName);
-							this.toast(errorMessage, 0);
+							this.toast(LogLevel.Error, errorMessage, 0);
 							throw error; // Rethrow to propagate the error
 						});
 					}
@@ -237,7 +137,7 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 					return result;
 				} catch (error) {
 					const errorMessage = this.getErrorMessage(error, fnName);
-					this.toast(errorMessage, 0);
+					this.toast(LogLevel.Error, errorMessage, 0);
 					throw error; // Rethrow to propagate the error
 				}
 			}
@@ -342,9 +242,9 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	registerEditorSuggest(id: string, editorSuggest: EditorSuggest<any>) {
-		this.log(`editorSuggest ${editorSuggest}`)
+		this.info(`editorSuggest ${editorSuggest}`)
 
-		const register = `registerEditorSuggest-${id}`
+		const register = `${nameof(this.registerEditorSuggest)}-${id}`
 		if (this.registers.contains(register)) return;
 		this.registers.push(register);
 
@@ -352,9 +252,9 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 	}
 
 	registerEvent(id: 'editor-paste', eventRef: EventRef) {
-		this.log(`eventRef ${eventRef}`)
+		this.info(`eventRef ${eventRef}`)
 
-		const register = `registerEvent-${id}`
+		const register = `${nameof(this.registerEvent)}-${id}`
 		if (this.registers.contains(register)) return;
 		this.registers.push(register);
 
@@ -366,9 +266,9 @@ export default abstract class BasePluginModule<T extends ErrorWrappingSettings> 
 		handler: (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => Promise<any> | void,
 		sortOrder?: number
 	) {
-		this.log(`language ${language} handler ${handler} sortOrder ${sortOrder}`)
+		this.info(`language ${language} handler ${handler} sortOrder ${sortOrder}`)
 
-		const register = `registerMarkdownCodeBlockProcessor-${language}`
+		const register = `${nameof(this.registerMarkdownCodeBlockProcessor)}-${language}`
 		if (this.registers.contains(register)) return;
 		this.registers.push(register);
 

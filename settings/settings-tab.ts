@@ -33,7 +33,7 @@ export default class MyPluginSettingTab extends PluginSettingTab {
 					.addOptions({
 						[LogLevel.Trace]: "Trace",
 						[LogLevel.Debug]: "Debug",
-						[LogLevel.Log]: "Log",
+						[LogLevel.Info]: "Log",
 						[LogLevel.Warn]: "Warning",
 						[LogLevel.Error]: "Error",
 					})

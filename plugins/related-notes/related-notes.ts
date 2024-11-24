@@ -158,7 +158,7 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 		selectedLink?: string
 	) {
 		if (!selectedLink && !folder) {
-			this.log(`It's not possible to use the folder name of a file with no parent`)
+			this.info(`It's not possible to use the folder name of a file with no parent`)
 			return;
 		}
 
@@ -196,7 +196,7 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 			}
 		}
 
-		this.log(`File property successfully added to all files in the folder (${folder!.path})!`, true, 3000)
+		this.info(`File property successfully added to all files in the folder (${folder!.path})!`, true, 3000)
 	}
 
 	private getChildrenMarkdownFiles(folder: TFolder): TFile[] {
@@ -225,7 +225,7 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 		const newYAML = `---\n${propertyName}:\n  - \"${propertyLink}\"\n---\n`;
 		const updatedContent = newYAML + fileContent;
 		await this.plugin.app.vault.modify(file, updatedContent);
-		console.log(`Added '${propertyName}' to file: ${file.path}`);
+		this.info(`Added '${propertyName}' to file: ${file.path}`);
 	}
 
 	private async hasPropertiesContext(
@@ -272,36 +272,36 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 		yamlEndIndex: number,
 		file: TFile
 	) {
-		console.log('Checking if property contains the link');
+		this.debug('Checking if property contains the link');
 
 		// Search for property line
 		const propertyIndex = yamlContent.indexOf(`${propertyName}:`);
 		if (propertyIndex === -1) {
-			console.error(`'${propertyName}' not found`)
+			this.error('hasProperty', `'${propertyName}' not found`)
 			return;
 		}
 
 		// Case 1: property is found, now check the format
-		console.log(`${propertyName} property found(`);
+		this.debug(`${propertyName} property found(`);
 
 		// Check if it's in array format or comma-separated format
 		const arrayStartIndex = yamlContent.indexOf('-', propertyIndex);
 		if (arrayStartIndex !== -1) {
-			console.log('property is in array format');
+			this.debug('property is in array format');
 
 			const preArraySlice = yamlContent.slice(propertyIndex, arrayStartIndex);
 
 			// Find the last newline in this slice and count spaces after it
 			const lastNewlineIndex = preArraySlice.lastIndexOf('\n');
 			const indentationCount = arrayStartIndex - (propertyIndex + lastNewlineIndex + 1);
-			console.log('indentationCount:', indentationCount);
+			this.debug(`'indentationCount:', ${indentationCount}`);
 
 			const indentation = ' '.repeat(indentationCount)
-			console.log('indentation:', indentation);
+			this.debug(`'indentation:', ${indentation}`);
 
 			// Array format: add the new link as a new item in the list
 			const newYAML = indentation + `- \"${propertyLink}\"`;
-			console.log('newYAML', newYAML);
+			this.debug(`'newYAML', ${newYAML}`);
 
 			const nextPropertyPattern = /\n\w+:/;
 			const nextPropertyMatch = yamlContent.slice(arrayStartIndex).search(nextPropertyPattern);
@@ -315,17 +315,15 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 			// Check if the new link already exists in this section
 			if (propertySlice.includes(newYAML.trim())) return;
 
-			console.group('array')
+			this.trace('fileContent, ' + fileContent);
+			this.trace('yamlContent, ' + yamlContent);
 
-			console.log('fileContent', fileContent);
-			console.log('yamlContent', yamlContent);
-
-			console.log('fileContent.slice(0, yamlStartIndex + 3)', fileContent.slice(0, yamlStartIndex + 3));
-			console.log('yamlContent.slice(0, propertyIndex)', yamlContent.slice(0, propertyIndex));
-			console.log('yamlContent.slice(0, propertyIndex + 14)', yamlContent.slice(0, propertyIndex + 14));
-			console.log('newYAML', newYAML);
-			console.log('yamlContent.slice(arrayStartIndex)', yamlContent.slice(arrayStartIndex));
-			console.log('fileContent.slice(yamlEndIndex)', fileContent.slice(yamlEndIndex));
+			this.trace('fileContent.slice(0, yamlStartIndex + 3), ' + fileContent.slice(0, yamlStartIndex + 3));
+			this.trace('yamlContent.slice(0, propertyIndex), ' + yamlContent.slice(0, propertyIndex));
+			this.trace('yamlContent.slice(0, propertyIndex + 14), ' + yamlContent.slice(0, propertyIndex + 14));
+			this.trace('newYAML, ' + newYAML);
+			this.trace('yamlContent.slice(arrayStartIndex), ' + yamlContent.slice(arrayStartIndex));
+			this.trace('fileContent.slice(yamlEndIndex), ' + fileContent.slice(yamlEndIndex));
 
 			const updatedContent = fileContent.slice(0, yamlStartIndex + 3)
 				+ '\n'
@@ -337,13 +335,11 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 				+ yamlContent.slice(arrayStartIndex)
 				+ '\n'
 				+ fileContent.slice(yamlEndIndex);
-			console.log('updatedContent', updatedContent);
-
-			console.groupEnd()
+			this.trace('updatedContent, ' + updatedContent);
 
 			await this.plugin.app.vault.modify(file, updatedContent);
 		} else {
-			console.log('property is in comma-separated format');
+			this.trace('property is in comma-separated format');
 			const commaSeparatedIndex = yamlContent.indexOf(`${propertyName}:`, propertyIndex);
 			// Comma-separated format: add the new link at the end of the line
 		}
@@ -358,7 +354,7 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 		yamlEndIndex: number,
 		file: TFile
 	) {
-		console.log('Property not found');
+		this.warn('noProperty', 'Property not found');
 
 		// Case 3: `propertyName` is not found in the existing YAML, so add it at the start
 		const newYAML = `${propertyName}:\n  - \"${propertyLink}\"`;
@@ -372,7 +368,7 @@ export default class RelatedNotesPlugin extends BasePluginModule<RelatedNotesPlu
 			+ '\n'
 			+ fileContent.slice(yamlEndIndex);
 		await this.plugin.app.vault.modify(file, updatedContent);
-		console.log(`Added '${propertyName}' to existing YAML front matter in file: ${file.path}`);
+		this.warn('noProperty', `Added '${propertyName}' to existing YAML front matter in file: ${file.path}`);
 	}
 
 }

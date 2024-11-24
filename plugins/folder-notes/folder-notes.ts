@@ -28,6 +28,7 @@ export default class FolderNotesPlugin extends BasePluginModule<FolderNotesPlugi
 	}
 
 	private async addFoldersNotesAndSubFoldersNotes(folders: TFolder[]) {
+		this.trace(`folders, ${folders}`)
 		await this.addFoldersNotes(folders);
 		for (const folder of folders) {
 			const subFolders = folder.children.filter((item) => item instanceof TFolder) as TFolder[];
@@ -36,10 +37,12 @@ export default class FolderNotesPlugin extends BasePluginModule<FolderNotesPlugi
 	}
 
 	private async addFoldersNotes(folders: TFolder[]) {
+		this.trace(`folders, ${folders}`)
 		for (const folder of folders) await this.addFolderNote(folder);
 	}
 
 	private async addFolderNote(folder: TFolder) {
+		this.trace(`folder, ${folder}`)
 		const folderNoteName = folder.name + '.md';
 		const folderNotePath = `${folder.path}/${folderNoteName}`;
 		const waypointMagicString = '%% Waypoint %%';
@@ -52,7 +55,7 @@ export default class FolderNotesPlugin extends BasePluginModule<FolderNotesPlugi
 			await this.modifyFolderNote(existingNote, waypointMagicString);
 		} else {
 			await this.plugin.app.vault.create(folderNotePath, waypointMagicString);
-			this.log(`Created the folder note '${folderNoteName}'.`, true, 3500);
+			this.info(`Created the folder note '${folderNoteName}'.`, true, 3500);
 		}
 	}
 
@@ -61,7 +64,7 @@ export default class FolderNotesPlugin extends BasePluginModule<FolderNotesPlugi
 		if (!content.includes('%% Begin Waypoint %%')) {
 			const updatedContent = `${waypointMagicString}\n${content}`;
 			await this.plugin.app.vault.modify(folderNote, updatedContent);
-			this.log(`Updated the content of '${folderNote.basename}'`, true, 3500);
+			this.info(`Updated the content of '${folderNote.basename}'`, true, 3500);
 		}
 	}
 

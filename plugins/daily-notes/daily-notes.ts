@@ -33,9 +33,9 @@ related_notes:
 		const existingFile = this.plugin.app.vault.getAbstractFileByPath(dailyNotePath);
 		if (!existingFile) {
 			await this.plugin.app.vault.create(dailyNotePath, content);
-			this.log(`Created daily note at '${dailyNotePath}'.`, true, 3500);
+			this.info(`Created daily note at '${dailyNotePath}'.`, true, 3500);
 		} else {
-			this.log("Daily note already exists in this folder.", true);
+			this.info("Daily note already exists in this folder.", true);
 		}
 	}
 

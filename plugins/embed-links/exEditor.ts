@@ -1,5 +1,6 @@
 import { Editor, EditorPosition } from 'obsidian';
 import { REGEX } from './constants';
+import { Logger } from 'utils/logging-functions';
 
 interface WordBoundary {
 	start: { line: number; ch: number };
@@ -13,9 +14,15 @@ export interface Selected {
 }
 
 export class ExEditor {
-	public static getSelectedText(editor: Editor, debug: boolean): Selected {
+	logger: Logger;
+
+	constructor(logger: Logger) {
+		this.logger = logger;
+	}
+
+	public getSelectedText(editor: Editor, debug: boolean): Selected {
 		if (debug) {
-			console.log(
+			this.logger.info(
 				`Link Embed: editor.somethingSelected() ${editor.somethingSelected()}`,
 			);
 		}
@@ -45,7 +52,7 @@ export class ExEditor {
 		};
 	}
 
-	private static cursorWithinBoundaries(
+	private cursorWithinBoundaries(
 		cursor: EditorPosition,
 		match: RegExpMatchArray,
 		debug: boolean,
@@ -55,14 +62,14 @@ export class ExEditor {
 		let startIndex = match.index;
 		let endIndex = match.index + match[0].length;
 		if (debug) {
-			console.log(
+			this.logger.info(
 				`Link Embed: cursorWithinBoundaries ${startIndex}, ${cursor.ch}, ${endIndex}`,
 			);
 		}
 		return startIndex <= cursor.ch && cursor.ch <= endIndex;
 	}
 
-	private static getWordBoundaries(
+	private getWordBoundaries(
 		editor: Editor,
 		debug: boolean,
 	): WordBoundary {
@@ -74,12 +81,12 @@ export class ExEditor {
 		let linksInLine = lineText.matchAll(urlRegex);
 
 		if (debug) {
-			console.log('Link Embed: cursor', cursor, 'lineText', lineText);
+			this.logger.info(`Link Embed: cursor, ${cursor}, lineText, ${lineText}`);
 		}
 
 		for (let match of linksInLine) {
 			if (debug) {
-				console.log('Link Embed: match', match);
+				this.logger.info(`'Link Embed: match', ${match}`);
 			}
 			if (this.cursorWithinBoundaries(cursor, match, debug)) {
 				return {

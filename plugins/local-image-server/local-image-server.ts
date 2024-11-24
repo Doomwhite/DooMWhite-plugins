@@ -35,7 +35,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 	// Function to start the local HTTP server with better logging
 	private startLocalServer(rootDir: string) {
 		if (this.serverProcess) {
-			this.log('Server is already running', true);
+			this.info('Server is already running', true);
 			return;
 		}
 
@@ -66,7 +66,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 				this.error('startLocalServer', `Error starting server: ${error.message}`);
 			}
 			if (stdout) {
-				this.log(`Server stdout: ${stdout}`, true);
+				this.info(`Server stdout: ${stdout}`, true);
 			}
 			if (stderr) {
 				this.error('Server stderr:', stderr);
@@ -75,7 +75,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 
 		// Log the server output continuously
 		this.serverProcess.stdout?.on('data', (data: string) => {
-			this.log(`Server stdout: ${data}`, true);
+			this.info(`Server stdout: ${data}`, true);
 		});
 
 		this.serverProcess.stderr?.on('data', (data: string) => {
@@ -83,21 +83,21 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 		});
 
 		this.serverProcess.on('close', (code: number) => {
-			this.log(`Server process exited with code ${code}`, true);
+			this.info(`Server process exited with code ${code}`, true);
 		});
 
-		this.log(`Server running at ${this.settings.url()}`, true);
+		this.info(`Server running at ${this.settings.url()}`, true);
 	}
 
 	// Function to stop the local HTTP server and log the process
 	private stopLocalServer() {
-		this.log(`Trying to stopping server.`, true);
+		this.info(`Trying to stopping server.`, true);
 		this.killServerProcess();
 		if (this.serverProcess) {
-			this.log(`Stopping server.`, true);
+			this.info(`Stopping server.`, true);
 			this.serverProcess.kill()
 			this.serverProcess = null;
-			this.log("Local HTTP server stopped.");
+			this.info("Local HTTP server stopped.");
 		}
 	}
 
@@ -105,7 +105,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 	private killServerProcess() {
 		// Ensure this runs only on Windows
 		if (process.platform !== 'win32') {
-			this.log(`Task kill logic is only supported on Windows.`, true, 700);
+			this.info(`Task kill logic is only supported on Windows.`, true, 700);
 			return;
 		}
 
@@ -143,7 +143,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 					// Run the kill command synchronously
 					execSync(killCommand);
 
-					this.log(`Successfully killed http-server process with PID ${pid}`, true, 700);
+					this.info(`Successfully killed http-server process with PID ${pid}`, true, 700);
 				} catch (killError) {
 					this.error('killServerProcess', `Failed to kill process ${pid}: ${killError.message}`);
 				}
@@ -154,7 +154,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 	}
 
 	onLoad(): void {
-		this.log('onLoad');
+		this.info('onLoad');
 		this.stopLocalServer();
 		this.startLocalServer(join(this.getVaultPath(), 'attachments'));
 
@@ -176,7 +176,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 	}
 
 	onUnload(): void {
-		this.log('onUnload');
+		this.info('onUnload');
 		this.stopLocalServer();
 	}
 
@@ -192,7 +192,7 @@ export default class LocalImageServerPlugin extends BasePluginModule<LocalImageS
 				}
 			});
 		} else {
-			this.log("Assets directory 'attachments' not found.", true);
+			this.info("Assets directory 'attachments' not found.", true);
 		}
 	}
 
