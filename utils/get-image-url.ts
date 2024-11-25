@@ -9,7 +9,7 @@ export class ImageExtractor<T extends ErrorWrappingSettings> {
         this.plugin = plugin;
     }
 
-    getObisidianImageUrl(imageName: string): string {
+    getObsidianImageUrl(imageName: string): string {
         const imagePath = join('attachments', imageName)
         this.plugin.debug(`imagePath: ${imagePath}`)
 

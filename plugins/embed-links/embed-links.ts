@@ -124,7 +124,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 			if (info.image.startsWith('http://') || info.image.startsWith('https://') || info.image.startsWith('file:///')) {
 				const protocolRemoved = info.image.replace(/^(https?:\/\/|file:\/\/\/)/, '');
 				const imageName = protocolRemoved.split('/').slice(1).join('/');
-				image = this.imageExtractor.getObisidianImageUrl(imageName);
+				image = this.imageExtractor.getObsidianImageUrl(imageName);
 			} else {
 				image = info.image;
 			}
