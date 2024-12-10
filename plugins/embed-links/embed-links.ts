@@ -1,31 +1,25 @@
-import crypto from 'crypto';
-import fs from 'fs';
-import https from 'https';
-import Mustache from 'mustache';
-import {
-	Editor,
-	MarkdownView,
-	Notice,
-	parseYaml,
-	Plugin
-} from 'obsidian';
-import path from 'path';
-import BasePluginModule from 'utils/base-plugin-module';
-import { ArgumentNullException } from 'utils/exceptions';
-import ImageDownloader from 'utils/image-downloader';
+import crypto from "crypto";
+import fs from "fs";
+import https from "https";
+import Mustache from "mustache";
+import { Editor, MarkdownView, Notice, parseYaml, Plugin } from "obsidian";
+import path from "path";
+import BasePluginModule from "utils/base-plugin-module";
+import { ArgumentNullException } from "utils/exceptions";
+import ImageDownloader from "utils/image-downloader";
 import {
 	EmbedInfo,
 	HTMLTemplate,
 	MarkdownTemplate,
 	REGEX,
 	SPINNER,
-} from './constants';
-import { ExEditor, Selected } from './exEditor';
-import { createParser, getParsersNames } from './parser';
-import { EmbedLinksPluginSettings } from './settings';
-import EmbedSuggest from './suggest';
-import { ImageExtractor } from 'utils/get-image-url';
-import { computeFileHash } from 'utils/compute-file-hash';
+} from "./constants";
+import { ExEditor, Selected } from "./exEditor";
+import { createParser, getParsersNames } from "./parser";
+import { EmbedLinksPluginSettings } from "./settings";
+import EmbedSuggest from "./suggest";
+import { ImageExtractor } from "utils/get-image-url";
+import { computeFileHash } from "utils/compute-file-hash";
 
 interface PasteInfo {
 	trigger: boolean;
@@ -33,18 +27,20 @@ interface PasteInfo {
 }
 
 export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginSettings> {
-
 	readonly exEditor = new ExEditor(this);
 	readonly imageExtractor = new ImageExtractor(this);
 
 	pasteInfo: PasteInfo;
 
 	constructor(plugin: Plugin) {
-		super('EmbedLinksPlugin', plugin)
+		super("EmbedLinksPlugin", plugin);
 	}
 
 	async getText(editor: Editor): Promise<Selected> {
-		let selected = this.exEditor.getSelectedText(editor, this.settings.debug);
+		let selected = this.exEditor.getSelectedText(
+			editor,
+			this.settings.debug,
+		);
 		let cursor = editor.getCursor();
 		if (!selected.can) {
 			selected.text = await navigator.clipboard.readText();
@@ -59,13 +55,13 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 	onLoad(): void {
 		this.pasteInfo = {
 			trigger: false,
-			text: '',
+			text: "",
 		};
 
 		this.registerEvent(
-			'editor-paste',
+			"editor-paste",
 			this.plugin.app.workspace.on(
-				'editor-paste',
+				"editor-paste",
 				(
 					evt: ClipboardEvent,
 					editor: Editor,
@@ -73,11 +69,14 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 				) => {
 					this.pasteInfo = {
 						trigger: false,
-						text: '',
+						text: "",
 					};
-					if (!evt.clipboardData) throw new ArgumentNullException(nameof(evt.clipboardData));
+					if (!evt.clipboardData)
+						throw new ArgumentNullException(
+							nameof(evt.clipboardData),
+						);
 
-					const text = evt.clipboardData.getData('text/plain');
+					const text = evt.clipboardData.getData("text/plain");
 					if (EmbedLinksPlugin.isUrl(text)) {
 						this.pasteInfo.trigger = true;
 						this.pasteInfo.text = text;
@@ -86,11 +85,14 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 			),
 		);
 
-		this.registerEditorSuggest('embed-suggest', new EmbedSuggest(this.plugin.app, this));
+		this.registerEditorSuggest(
+			"embed-suggest",
+			new EmbedSuggest(this.plugin.app, this),
+		);
 
 		this.addEditorCommand(
-			'embed-link',
-			'Embed link',
+			"embed-link",
+			"Embed link",
 			async (editor: Editor) => {
 				let selected = await this.getText(editor);
 				if (!this.checkUrlValid(selected)) {
@@ -116,14 +118,21 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 			);
 		});
 
-		this.registerMarkdownCodeBlockProcessor('embed', (source, el, ctx) => {
+		this.registerMarkdownCodeBlockProcessor("embed", (source, el, ctx) => {
 			const info = parseYaml(source.trim()) as EmbedInfo;
-			this.trace(`info: ${info}`)
+			this.trace(`info: ${info}`);
 			let image: string;
 
-			if (info.image.startsWith('http://') || info.image.startsWith('https://') || info.image.startsWith('file:///')) {
-				const protocolRemoved = info.image.replace(/^(https?:\/\/|file:\/\/\/)/, '');
-				const imageName = protocolRemoved.split('/').slice(1).join('/');
+			if (
+				info.image.startsWith("http://") ||
+				info.image.startsWith("https://") ||
+				info.image.startsWith("file:///")
+			) {
+				const protocolRemoved = info.image.replace(
+					/^(https?:\/\/|file:\/\/\/)/,
+					"",
+				);
+				const imageName = protocolRemoved.split("/").slice(1).join("/");
 				image = this.imageExtractor.getObsidianImageUrl(imageName);
 			} else {
 				image = info.image;
@@ -134,22 +143,19 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 				.replace(/{{description}}/gm, info.description)
 				.replace(/{{{url}}}/gm, info.url);
 			let parser = new DOMParser();
-			var doc = parser.parseFromString(html, 'text/html');
+			var doc = parser.parseFromString(html, "text/html");
 			this.info(`${doc}`);
 			el.replaceWith(doc.body.firstChild as ChildNode);
 		});
 	}
 
-	onUnload(): void { }
+	onUnload(): void {}
 
 	checkUrlValid(selected: Selected): boolean {
 		if (
-			!(
-				selected.text.length > 0 &&
-				EmbedLinksPlugin.isUrl(selected.text)
-			)
+			!(selected.text.length > 0 && EmbedLinksPlugin.isUrl(selected.text))
 		) {
-			new Notice('Need a link to convert to embed.');
+			new Notice("Need a link to convert to embed.");
 			return false;
 		}
 		return true;
@@ -165,7 +171,7 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 		// Replace selection if in place
 		if (selected.can && inPlace) {
 			editor.replaceRange(
-				'',
+				"",
 				selected.boundary.start,
 				selected.boundary.end,
 			);
@@ -187,11 +193,11 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 		const startCursor = editor.getCursor();
 		const dummyEmbed =
 			Mustache.render(template, {
-				title: 'Fetching',
+				title: "Fetching",
 				image: SPINNER,
 				description: `Fetching ${url}`,
 				url: url,
-			}) + '\n';
+			}) + "\n";
 		editor.replaceSelection(dummyEmbed);
 		const endCursor = editor.getCursor();
 
@@ -199,12 +205,12 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 		let idx = 0;
 		while (idx < selectedParsers.length) {
 			const selectedParser = selectedParsers[idx];
-			this.debug(`Link Embed: parser, ${selectedParser}`);
+			console.info(`Link Embed: parser,`, selectedParser);
 			const parser = createParser(selectedParser, this);
 			parser.debug = this.settings.debug;
 			try {
 				const data = await parser.parse(url);
-				this.debug(`Link Embed: meta data, ${data}`);
+				console.info(`Link Embed: meta data`, data);
 
 				// Download the image to the vault
 
@@ -212,9 +218,15 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 					const imageUrl = data.image;
 					const finalPath = `${this.getVaultPath()}/attachments/`; // Final desired path
 
-					const tempPath = path.join(`${this.getVaultPath()}/attachments/`, 'temp_image'); // Temporary path (this can be anything)
-					const imageDownloader = new ImageDownloader(tempPath, this)
-					const imageName = await imageDownloader.downloadImage(imageUrl, finalPath);
+					const tempPath = path.join(
+						`${this.getVaultPath()}/attachments/`,
+						"temp_image",
+					); // Temporary path (this can be anything)
+					const imageDownloader = new ImageDownloader(tempPath, this);
+					const imageName = await imageDownloader.downloadImage(
+						imageUrl,
+						finalPath,
+					);
 
 					// const localUrl = `https://localhost:8181/${imageName}`;
 					const localUrl = `file:///attachments/${imageName}`;
@@ -222,13 +234,13 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 					// Prepare the escaped data
 					const escapedData = {
 						title: data.title.replace(/"/g, '\\"'),
-						image: localUrl,  // Use local URL for image
+						image: localUrl, // Use local URL for image
 						description: data.description.replace(/"/g, '\\"'),
 						url: data.url,
 					};
 
 					// Render the final embed
-					const embed = Mustache.render(template, escapedData) + '\n';
+					const embed = Mustache.render(template, escapedData) + "\n";
 					if (this.settings.delay > 0) {
 						await new Promise((f) =>
 							setTimeout(f, this.settings.delay),
@@ -246,79 +258,109 @@ export default class EmbedLinksPlugin extends BasePluginModule<EmbedLinksPluginS
 					}
 					break;
 				} catch (error) {
-					this.error('Link Embed: error', error);
+					this.error("Link Embed: error", error);
 					idx += 1;
 					if (idx === selectedParsers.length) {
-						this.warn('embedUrl', 'Link Embed: Failed to fetch data');
+						this.warn(
+							"embedUrl",
+							"Link Embed: Failed to fetch data",
+						);
 					}
 				}
 			} catch (error) {
-				this.error('embedUrl', error);
+				this.error("embedUrl", error);
 				return;
 			}
-
 		}
 	}
 
 	// Helper function to download the image and save it to the vault attachments folder
-	async downloadImage(url: string, tempPath: string, finalPath: string): Promise<string> {
+	async downloadImage(
+		url: string,
+		tempPath: string,
+		finalPath: string,
+	): Promise<string> {
 		this.info(`tempPath ${tempPath}`);
 
 		return new Promise((resolve, reject) => {
-			https.get(url, (response) => {
-				this.info(`response ${response}`);
-				// Get the file extension from the Content-Type header (e.g., image/jpeg or image/png)
-				const contentType = response.headers['content-type'];
-				const extension = contentType ? contentType.split('/')[1] : 'jpg';  // Default to jpg if not found
-				this.info(`extension ${extension}`);
+			https
+				.get(url, (response) => {
+					this.info(`response ${response}`);
+					// Get the file extension from the Content-Type header (e.g., image/jpeg or image/png)
+					const contentType = response.headers["content-type"];
+					const extension = contentType
+						? contentType.split("/")[1]
+						: "jpg"; // Default to jpg if not found
+					this.info(`extension ${extension}`);
 
-				// Create a temporary file stream to download the image
-				const tempFile = fs.createWriteStream(tempPath);
+					// Create a temporary file stream to download the image
+					const tempFile = fs.createWriteStream(tempPath);
 
-				response.pipe(tempFile);
-				tempFile.on('finish', async () => {
-					tempFile.close(async () => {
-						this.info(`Image downloaded to temporary path: ${tempPath}`);
+					response.pipe(tempFile);
+					tempFile.on("finish", async () => {
+						tempFile.close(async () => {
+							this.info(
+								`Image downloaded to temporary path: ${tempPath}`,
+							);
 
-						// Generate the final file name using the current timestamp and the file extension
-						const fileHash = await computeFileHash(tempPath);
-						const finalFileName = `${fileHash}.${extension}`;
-						this.info(`finalFileName ${finalFileName}`);
+							// Generate the final file name using the current timestamp and the file extension
+							const fileHash = await computeFileHash(tempPath);
+							const finalFileName = `${fileHash}.${extension}`;
+							this.info(`finalFileName ${finalFileName}`);
 
-						// Define the final path with the generated name
-						const finalFilePath = path.join(finalPath, finalFileName);
-						this.info(`finalFilePath ${finalFilePath}`);
+							// Define the final path with the generated name
+							const finalFilePath = path.join(
+								finalPath,
+								finalFileName,
+							);
+							this.info(`finalFilePath ${finalFilePath}`);
 
-						// Ensure that the final directory exists
-						fs.mkdir(path.dirname(finalFilePath), { recursive: true }, (err) => {
-							if (err) {
-								this.error('downloadImage', `Error creating directory: ${err}`);
-								reject(err);
-							} else {
-								// Check if image exists locally, if not, rename and save it
-								fs.copyFile(tempPath, finalFilePath, (err) => {
+							// Ensure that the final directory exists
+							fs.mkdir(
+								path.dirname(finalFilePath),
+								{ recursive: true },
+								(err) => {
 									if (err) {
-										this.error('downloadImage', `Error renaming the file: ${err}`);
+										this.error(
+											"downloadImage",
+											`Error creating directory: ${err}`,
+										);
 										reject(err);
 									} else {
-										this.info(`Image renamed and saved to: ${finalFilePath}`);
-										resolve(finalFileName); // Return just the filename
+										// Check if image exists locally, if not, rename and save it
+										fs.copyFile(
+											tempPath,
+											finalFilePath,
+											(err) => {
+												if (err) {
+													this.error(
+														"downloadImage",
+														`Error renaming the file: ${err}`,
+													);
+													reject(err);
+												} else {
+													this.info(
+														`Image renamed and saved to: ${finalFilePath}`,
+													);
+													resolve(finalFileName); // Return just the filename
+												}
+											},
+										);
 									}
-								});
-							}
+								},
+							);
 						});
 					});
+				})
+				.on("error", (err) => {
+					fs.unlink(tempPath, () => {}); // delete the file if there's an error
+					reject(err);
 				});
-			}).on('error', (err) => {
-				fs.unlink(tempPath, () => { }); // delete the file if there's an error
-				reject(err);
-			});
 		});
 	}
 
 	public static isUrl(text: string): boolean {
-		const urlRegex = new RegExp(REGEX.URL, 'g');
+		const urlRegex = new RegExp(REGEX.URL, "g");
 		return urlRegex.test(text);
 	}
-
 }

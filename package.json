@@ -24,6 +24,7 @@
 		"@typescript-eslint/parser": "^5.2.0",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.17.3",
+		"http-proxy": "^1.18.1",
 		"mustache": "^4.2.0",
 		"node-exceptions": "4.0.1",
 		"obsidian": "latest",

@@ -1,7 +1,9 @@
-import Mustache from 'mustache';
-import { Notice, requestUrl } from 'obsidian';
-import { Logger } from 'utils/logging-functions';
-const electronPkg = require('electron');
+import Mustache from "mustache";
+import { Notice, requestUrl } from "obsidian";
+import { Logger } from "utils/logging-functions";
+
+const axios = require("axios");
+const electronPkg = require("electron");
 
 export abstract class Parser {
 	api: string;
@@ -14,13 +16,51 @@ export abstract class Parser {
 
 	async parseUrl(url: string): Promise<any> {
 		const parseUrl = Mustache.render(this.api, { url });
-		new Notice(`Fetching ${url}`);
+		console.info(`Fetching ${url}`);
 		const res = await ajaxPromise({
 			url: parseUrl,
 		});
 		const data = JSON.parse(res);
+		console.info("data", data);
 		return data;
 	}
+
+	// async parseUrl(url: string): Promise<any> {
+	// 	const parseUrl = Mustache.render(this.api, { url });
+	// 	new Notice(`Fetching ${url}`);
+
+	// 	try {
+	// 		const res = await axios.get(parseUrl);
+	// 		return res.data;
+	// 	} catch (error) {
+	// 		// Log the error for debugging
+	// 		this.logger.error("parseUrl", `Error fetching URL: ${error}`);
+
+	// 		// Show a user-friendly notice with the error message
+	// 		if (axios.isAxiosError(error)) {
+	// 			// Axios-specific error handling
+	// 			this.logger.error(
+	// 				"parseUrl",
+	// 				`Failed to fetch: ${error.message}`,
+	// 			);
+	// 			if (error.response) {
+	// 				this.logger.error(
+	// 					"parseUrl",
+	// 					`Error fetching URL: ${error}`,
+	// 				);
+	// 			}
+	// 		} else {
+	// 			// Generic error handling
+	// 			this.logger.error(
+	// 				"parseUrl",
+	// 				`An unexpected error occurred: ${error}`,
+	// 			);
+	// 		}
+
+	// 		throw error;
+	// 	}
+	// }
+
 	async parse(url: string): Promise<{
 		title: string;
 		image: string;
@@ -41,61 +81,60 @@ export abstract class Parser {
 }
 
 class JSONLinkParser extends Parser {
-
 	constructor(logger: Logger) {
 		super(logger);
-		this.api = 'https://jsonlink.io/api/extract?url={{{url}}}';
+		this.api =
+			"https://jsonlink.io/api/extract?url={{{url}}}&api_key=pk_7283ecd75f4727bfa192fb21db4085964783aec6";
 	}
 
 	process(data: any): { title: string; image: string; description: string } {
-		const title = data.title || '';
-		const image = data.images[0] || '';
-		let description: string = data.description || '';
-		description = description.replace(/\n/g, ' ').replace(/\\/g, '\\\\');
+		const title = data.title || "";
+		const image = data.images[0] || "";
+		let description: string = data.description || "";
+		description = description.replace(/\n/g, " ").replace(/\\/g, "\\\\");
 		return { title, image, description };
 	}
 }
 
 class MicroLinkParser extends Parser {
-
 	constructor(logger: Logger) {
 		super(logger);
-		this.api = 'https://api.microlink.io?url={{{url}}}&palette=true&audio=true&video=true&iframe=true';
+		this.api =
+			"https://api.microlink.io?url={{{url}}}&palette=true&audio=true&video=true&iframe=true";
 	}
 
 	process(data: any): { title: string; image: string; description: string } {
-		const title = data.data.title || '';
-		const image = data.data.image?.url || data.data.logo?.url || '';
-		let description: string = data.data.description || '';
-		description = description.replace(/\n/g, ' ').replace(/\\/g, '\\\\');
+		const title = data.data.title || "";
+		const image = data.data.image?.url || data.data.logo?.url || "";
+		let description: string = data.data.description || "";
+		description = description.replace(/\n/g, " ").replace(/\\/g, "\\\\");
 		return { title, image, description };
 	}
 }
 
 class IframelyParser extends Parser {
-
 	constructor(logger: Logger) {
 		super(logger);
-		this.api = 'http://iframely.server.crestify.com/iframely?url={{{url}}}';
+		this.api = "http://iframely.server.crestify.com/iframely?url={{{url}}}";
 	}
 
 	process(data: any): { title: string; image: string; description: string } {
-		const title = data.meta?.title || '';
-		const image = data.links[0]?.href || '';
-		let description: string = data.meta?.description || '';
-		description = description.replace(/\n/g, ' ').replace(/\\/g, '\\\\');
+		const title = data.meta?.title || "";
+		const image = data.links[0]?.href || "";
+		let description: string = data.meta?.description || "";
+		description = description.replace(/\n/g, " ").replace(/\\/g, "\\\\");
 		return { title, image, description };
 	}
 }
 
 class LocalParser extends Parser {
 	process(data: any): { title: string; image: string; description: string } {
-		let title = data.title || '';
-		const image = data.image || '';
-		let description: string = data.description || '';
+		let title = data.title || "";
+		const image = data.image || "";
+		let description: string = data.description || "";
 
-		description = description.replace(/\n/g, ' ').replace(/\\/g, '\\\\');
-		title = title.replace(/\n/g, ' ').replace(/\\/g, '\\\\');
+		description = description.replace(/\n/g, " ").replace(/\\/g, "\\\\");
+		title = title.replace(/\n/g, " ").replace(/\\/g, "\\\\");
 
 		return { title, image, description };
 	}
@@ -105,27 +144,27 @@ class LocalParser extends Parser {
 		if (element instanceof HTMLMetaElement) {
 			return element.content;
 		}
-		element = doc.querySelector('head title');
+		element = doc.querySelector("head title");
 		if (element) {
-			return element.textContent ?? '';
+			return element.textContent ?? "";
 		}
 		return url.hostname;
 	}
 
 	meetsCriteria(element: Element): boolean {
 		//If inline - display:none
-		if (/display:\s*none/.test(element.getAttribute('style') ?? '')) {
+		if (/display:\s*none/.test(element.getAttribute("style") ?? "")) {
 			return false;
 		}
 
 		//hide images in navigation bar/header
 		let contains_header = false;
 		element.classList.forEach((val) => {
-			if (val.toLowerCase().contains('header')) {
+			if (val.toLowerCase().contains("header")) {
 				contains_header = true;
 			}
-		})
-		if (element.id.toLowerCase().contains('header') || contains_header) {
+		});
+		if (element.id.toLowerCase().contains("header") || contains_header) {
 			return false;
 		}
 
@@ -146,24 +185,24 @@ class LocalParser extends Parser {
 		let selectors = [
 			'div[itemtype$="://schema.org/Product"] noscript img',
 			'div[itemtype$="://schema.org/Product"] img',
-			'#main noscript img',
-			'#main img',
-			'main noscript img',
-			'main img',
+			"#main noscript img",
+			"#main img",
+			"main noscript img",
+			"main img",
 			'*[role="main"] img',
-			'body noscript img',
-			'body img',
-		]
+			"body noscript img",
+			"body img",
+		];
 
 		for (const selector of selectors) {
-			let images = doc.querySelectorAll(selector)
+			let images = doc.querySelectorAll(selector);
 
 			for (let index = 0; index < images.length; index++) {
 				const element = images[index];
 				if (!this.meetsCriteria(element)) {
 					continue;
 				}
-				let attribute = element.getAttribute('src');
+				let attribute = element.getAttribute("src");
 				// Get image from document and return the full URL
 				if (attribute) {
 					return (element as HTMLImageElement).src;
@@ -171,7 +210,7 @@ class LocalParser extends Parser {
 			}
 		}
 
-		return '';
+		return "";
 	}
 
 	getDescription(doc: Document): string {
@@ -183,9 +222,8 @@ class LocalParser extends Parser {
 		if (element instanceof HTMLMetaElement) {
 			return element.content;
 		}
-		return '';
+		return "";
 	}
-
 
 	async getHtmlByRequest(url: string): Promise<string> {
 		const html = await requestUrl({ url: url }).then((site) => {
@@ -213,14 +251,17 @@ class LocalParser extends Parser {
 			window.webContents.setAudioMuted(true);
 
 			await new Promise<void>((resolve, reject) => {
-				window.webContents.on("did-finish-load", (e: any) => resolve(e));
+				window.webContents.on("did-finish-load", (e: any) =>
+					resolve(e),
+				);
 				window.webContents.on("did-fail-load", (e: any) => reject(e));
 				window.loadURL(url);
 			});
 
-			let doc = await window.webContents.executeJavaScript("document.documentElement.outerHTML;")
-			return doc
-
+			let doc = await window.webContents.executeJavaScript(
+				"document.documentElement.outerHTML;",
+			);
+			return doc;
 		} catch (ex) {
 			if (this.debug) {
 				this.logger.info(`'Failed to use electron: ', ${ex}`);
@@ -235,10 +276,12 @@ class LocalParser extends Parser {
 		description: string;
 		url: string;
 	}> {
-		let html = await this.getHtmlByElectron(url) || await this.getHtmlByRequest(url);
+		let html =
+			(await this.getHtmlByElectron(url)) ||
+			(await this.getHtmlByRequest(url));
 
 		let parser = new DOMParser();
-		const doc = parser.parseFromString(html, 'text/html');
+		const doc = parser.parseFromString(html, "text/html");
 		// get base url from document
 		let uRL = new URL(url);
 		if (this.debug) {
@@ -253,10 +296,10 @@ class LocalParser extends Parser {
 }
 
 export const parseOptions = {
-	jsonlink: 'JSONLink',
-	microlink: 'MicroLink',
-	iframely: 'Iframely',
-	local: 'Local',
+	jsonlink: "JSONLink",
+	microlink: "MicroLink",
+	iframely: "Iframely",
+	local: "Local",
 };
 
 // Define the parsers map with classes instead of instances
@@ -268,7 +311,7 @@ const parserTypes: { [key: string]: new (logger: Logger) => Parser } = {
 };
 
 export function getParsersNames(): string[] {
-	return Object.keys(parserTypes)
+	return Object.keys(parserTypes);
 }
 
 // Instantiate a parser dynamically
