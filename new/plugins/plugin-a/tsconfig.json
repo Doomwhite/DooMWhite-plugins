@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-	"module": "esnext",        // Ensure TypeScript outputs ES modules
-	"target": "esnext",        // Use a modern target for better compatibility
+    "module": "esnext",
+    "target": "esnext",
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "strict": true,

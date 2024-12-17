@@ -1,20 +1,20 @@
-import typescript from '@rollup/plugin-typescript';
-import nodeResolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
+import typescript from "@rollup/plugin-typescript";
+import nodeResolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 
 export default {
-  input: 'src/main.ts',              // Entry point for your plugin
+  input: "src/main.ts",
   output: {
-    file: 'dist/main.js',            // Output bundled file
-    format: 'cjs',                   // Use CommonJS format
-    sourcemap: true,                 // Include source maps (optional but useful)
+    file: "dist/main.js",
+    format: "cjs",
+    sourcemap: true,
   },
   plugins: [
     nodeResolve({
-      extensions: ['.ts', '.js'],    // Resolve .ts and .js files
+      extensions: [".ts", ".js"],
     }),
-    commonjs(),                      // Handle CommonJS modules
-    typescript(),                    // Compile TypeScript
+    commonjs(),
+    typescript(),
   ],
-  external: ['obsidian'],            // Mark Obsidian as external, since it’s already available in the environment
+  external: ["obsidian"],
 };

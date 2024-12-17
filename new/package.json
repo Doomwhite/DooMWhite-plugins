@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm run build:plugin-a",
+    "build:core-module": "cd core-module && npm run build",
+    "link:core-module": "cd core-module && npm link",
+    "preinstall": "npm run link:core-module && cd plugins/plugin-a && npm link core-modules",
+    "build": "npm run build:core-module && npm run build:plugin-a",
     "build:plugin-a": "cd plugins/plugin-a && npm run build"
   },
   "workspaces": [
