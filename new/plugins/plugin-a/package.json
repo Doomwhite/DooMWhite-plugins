@@ -1,0 +1,23 @@
+{
+  "name": "plugin-a",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "description": "",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "core-module": "file:../core-module",
+    "obsidian": "^1.7.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "rollup": "^4.28.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "core-module",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "description": "",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "node-exceptions": "4.0.1"
+  },
+  "dependencies": {
+    "node-exceptions": "4.0.1"
+  }
+}
