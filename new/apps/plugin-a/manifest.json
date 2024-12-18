@@ -1,11 +1,11 @@
 {
-  "id": "plugin-a",
-  "name": "plugin-a",
-  "version": "1.0.0",
-  "minAppVersion": "0.15.0",
-  "description": "plugin-a",
-  "author": "DooMWhite",
-  "authorUrl": "https://github.com/Doomwhite",
-  "fundingUrl": "https://obsidian.md/pricing",
-  "isDesktopOnly": false
+	"id": "plugin-a",
+	"name": "plugin-a",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "plugin-a",
+	"author": "DooMWhite",
+	"authorUrl": "https://github.com/Doomwhite",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": false
 }

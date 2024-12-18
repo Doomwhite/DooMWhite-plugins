@@ -1,25 +1,25 @@
 {
-  "name": "plugin-a",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/main.ts",
-  "type": "module",
-  "scripts": {
-    "build": "rollup -c"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "common": "workspace:*",
-    "obsidian": "latest"
-  },
-  "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.2",
-    "@rollup/plugin-node-resolve": "^16.0.0",
-    "@rollup/plugin-typescript": "^12.1.2",
-    "rollup": "^4.28.1",
-    "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "~5.6.2"
-  }
+	"name": "plugin-a",
+	"version": "1.0.0",
+	"description": "",
+	"main": "src/main.ts",
+	"type": "module",
+	"scripts": {
+		"build": "rollup -c"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"common": "workspace:*",
+		"obsidian": "latest"
+	},
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^28.0.2",
+		"@rollup/plugin-node-resolve": "^16.0.0",
+		"@rollup/plugin-typescript": "^12.1.2",
+		"rollup": "^4.28.1",
+		"rollup-plugin-typescript2": "^0.36.0",
+		"typescript": "~5.6.2"
+	}
 }

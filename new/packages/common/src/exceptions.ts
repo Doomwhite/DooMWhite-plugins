@@ -24,12 +24,16 @@ export class FileWriteError extends NE.LogicalException {}
 export class DirectoryNotFoundError extends NE.LogicalException {}
 export class PermissionDeniedError extends NE.LogicalException {}
 
-export function createError(name: string, defaultMessage: string, statusCode = 500) {
-  return class extends NE.LogicalException {
-    constructor(message = defaultMessage) {
-      super(message);
-      this.name = name;
-      this.status = statusCode;
-    }
-  };
+export function createError(
+	name: string,
+	defaultMessage: string,
+	statusCode = 500,
+) {
+	return class extends NE.LogicalException {
+		constructor(message = defaultMessage) {
+			super(message);
+			this.name = name;
+			this.status = statusCode;
+		}
+	};
 }
