@@ -11,7 +11,25 @@
   "devDependencies": {
     "typescript": "~5.6.2",
     "vite": "^6.0.1",
-    "vite-plugin-dts": "^4.3.0"
+    "vite-plugin-dts": "^4.3.0",
+    "node-exceptions": "latest",
+    "obsidian": "latest",
+    "ts-nameof": "^5.0.0",
+    "builtin-modules": "3.3.0",
+    "esbuild": "0.17.3",
+    "mustache": "^4.2.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "builtin-modules": "3.3.0",
+    "esbuild": "0.17.3",
+    "fs-extra": "^11.2.0",
+    "he": "1.2.0",
+    "node-exceptions": "4.0.1",
+    "obsidian": "latest",
+    "ts-nameof": "^5.0.0",
+    "tslib": "2.4.0",
+    "typescript": "^5.6.3"
   },
   "main": "./dist/common.js",
   "types": "./dist/main.d.ts"
