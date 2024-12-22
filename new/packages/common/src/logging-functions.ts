@@ -1,6 +1,14 @@
 import { Notice } from 'obsidian';
 import { ArgumentNullException, NotImplementedError } from './exceptions';
-import { LogLevel } from './base-plugin-module';
+
+export enum LogLevel {
+	None,
+	Trace,
+	Debug,
+	Info,
+	Warn,
+	Error,
+}
 
 export interface Logger {
 	toast(toastLogLevel: LogLevel, ...messages: unknown[]): void;
