@@ -1,24 +1,27 @@
 import { isBlank, LogLevel, PluginUtils } from 'common';
 import { Logging } from 'common';
 import { Plugin } from 'obsidian';
+import PluginASettingsTab from './settings-tab';
 
 console.log('Entrou no app', isBlank);
 
-class Settings implements Logging {
-	static readonly DEFAULT_LOG_LEVEL: LogLevel = LogLevel.None;
-	static readonly DEFAULT_TOAST_LOG_LEVEL: LogLevel = LogLevel.None;
-
-	logLevel: LogLevel = Settings.DEFAULT_LOG_LEVEL;
-	toastLogLevel: LogLevel = Settings.DEFAULT_TOAST_LOG_LEVEL;
+export class Settings implements Logging {
+	logLevel: LogLevel = LogLevel.Trace;
+	toastLogLevel: LogLevel = LogLevel.Trace;
 }
 
 export default class PluginA extends Plugin {
-	utils: PluginUtils<Settings> | null = null;
+	utils!: PluginUtils<Settings>;
 
-	onload() {
+	async onload() {
 		console.log('Carregou o PluginA', isBlank(false));
-		const settings = new Settings();
-		this.utils = new PluginUtils<Settings>(this, settings);
+		this.utils = await PluginUtils.create<Settings>(this, new Settings());
+		this.addSettingTab(new PluginASettingsTab(this.app, this));
+		this.utils.trace(LogLevel.Trace, 'hahahah');
+		this.utils.debug(LogLevel.Debug, 'hahahah');
+		this.utils.error(LogLevel.Error, 'hahahah');
+		this.utils.info(LogLevel.Info, 'hahahah');
+		this.utils.warn(LogLevel.Warn, 'hahahah');
 	}
 
 	unload() {

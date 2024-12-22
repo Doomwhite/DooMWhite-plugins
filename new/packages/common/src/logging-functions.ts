@@ -37,8 +37,8 @@ export class LoggingFunctions implements Logger {
 	private static toastDurations = {
 		[LogLevel.None]: 1,
 		[LogLevel.Trace]: 1,
-		[LogLevel.Debug]: 500,
-		[LogLevel.Info]: 500,
+		[LogLevel.Debug]: 3000,
+		[LogLevel.Info]: 1000,
 		[LogLevel.Warn]: 5000,
 		[LogLevel.Error]: 0,
 	};
@@ -107,19 +107,19 @@ export class LoggingFunctions implements Logger {
 
 		switch (logLevel) {
 			case LogLevel.Trace:
-				console.trace(`%c${this.name}`, style, messages);
+				console.trace(`%c[${this.name}]:`, style, messages);
 				break;
 			case LogLevel.Info:
-				console.info(`%c${this.name}`, style, messages);
+				console.info(`%c[${this.name}]:`, style, messages);
 				break;
 			case LogLevel.Debug:
-				console.debug(`%c${this.name}`, style, messages);
+				console.debug(`%c[${this.name}]:`, style, messages);
 				break;
 			case LogLevel.Warn:
-				console.warn(`%c${this.name}`, style, messages);
+				console.warn(`%c[${this.name}]:`, style, messages);
 				break;
 			case LogLevel.Error:
-				console.error(`%c${this.name}`, style, messages);
+				console.error(`%c[${this.name}]:`, style, messages);
 				break;
 			default:
 				throw new NotImplementedError('logLevel');
