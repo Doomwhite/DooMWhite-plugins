@@ -1,4 +1,4 @@
-import { FileSystemAdapter, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { FileSystemAdapter, Plugin, Setting } from 'obsidian';
 import { Logger, LoggingFunctions, LogLevel } from './logging-functions';
 import { InvalidTypeException } from './exceptions';
 import { restorePrototypes } from './restore-prototypes';
