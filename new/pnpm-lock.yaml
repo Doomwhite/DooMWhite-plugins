@@ -45,7 +45,7 @@ importers:
   apps/daily-notes:
     dependencies:
       common:
-        specifier: workspace:*
+        specifier: workspace:common
         version: link:../../packages/common
       obsidian:
         specifier: latest

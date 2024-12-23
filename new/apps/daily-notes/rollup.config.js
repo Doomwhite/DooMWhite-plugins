@@ -10,7 +10,7 @@ export default {
 		name: 'DailyNotes', // Name of your plugin
 		globals: {
 			obsidian: 'Obs',
-			common: 'Common', // If 'common' is a global module, map it here
+			common: 'common', // If 'common' is a global module, map it here
 		},
 	},
 	// Removing the 'external' field to bundle everything into the final build
