@@ -1,0 +1,11 @@
+{
+	"id": "doomwhite-daily-notes-plugin",
+	"name": "Daily Notes Plugin",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Daily notes plugin.",
+	"author": "DooMWhite",
+	"authorUrl": "https://github.com/Doomwhite",
+	"fundingUrl": "https://obsidian.md/pricing",
+	"isDesktopOnly": false
+}

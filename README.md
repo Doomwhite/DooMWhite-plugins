@@ -18,8 +18,17 @@ Those are all my obsidian plugins, all a single repository.
 ## How to make a new plugin workspace:
 
 - Copy the apps\plugin-a file.
+- Rename the package name in the package.json.
 - Rename the plugin in the src/main.ts.
+- Rename the rollup file:
+    ```json
+    	export default {
+    		input:
+      			output: {
+    				name: 'Plugin name'
+    ```
 - Adjust the manifest file.
+- Add the plugin to the scripts of 'package.json'.
 
 ## Manually installing the plugin
 
