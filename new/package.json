@@ -14,7 +14,9 @@
     "plugin-a:watch": "pnpm --filter plugin-a watch",
     "dailynotes": "pnpm --filter daily-notes",
     "dailynotes:watch": "pnpm --filter daily-notes watch",
-    "watch": "concurrently --kill-others-on-fail --names \"common,plugin-a,dailynotes\" \"pnpm common:watch\" \"pnpm plugin-a:watch\" \"pnpm dailynotes:watch\""
+    "embedlinks": "pnpm --filter embedlinks",
+    "embedlinks:watch": "pnpm --filter embed-links watch",
+    "watch": "concurrently --kill-others-on-fail --names \"common,plugin-a,dailynotes,embedlinks\" \"pnpm common:watch\" \"pnpm plugin-a:watch\" \"pnpm dailynotes:watch\" \"pnpm embedlinks:watch\""
   },
   "keywords": [],
   "author": "",
